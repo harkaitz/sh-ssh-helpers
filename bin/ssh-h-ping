@@ -1,0 +1,23 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-ping HOSTNAMES... : Login in remote machines.
+##:
+ssh_h_ping() {
+    local m
+    for m in "$@"; do
+        printf '%-10s : ' "${m}"
+        ssh -o PasswordAuthentication=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=2 \
+            "${m}" \
+            "uname -a | sed 's| *\\#.*||'"
+    done
+}
+if test @"$(basename "$0")" = @"ssh-h-ping"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)            ssh_h_ping "$@"; exit 0;;
+    esac
+fi
+
+

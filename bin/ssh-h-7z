@@ -1,0 +1,58 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-7z [-o ODIR][-D SKIP-DIR] MACHINE [FILES...]
+#h:
+#h: Create zip with 7z and extract into a remote machine.
+##:
+ssh_h_7z() {
+    local OPTIND optopt zip='' odir='' args='' machine=''
+
+    ## Parse command line arguments.
+    while getopts "o:D:" optopt; do
+        case $optopt in
+            o)  odir="${OPTARG}";;
+            D)  if test -d "${OPTARG}"; then
+                    args="${args} -xr!${OPTARG}\\*"
+                fi;;
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    machine="${1}"
+    if test ! -n "${machine}"; then
+        echo >&2 "error: Please specify a machine."
+        return 1
+    fi
+    shift
+
+    ## Calculate variables.
+    if test ! -n "${1}" && test ! -n "${odir}"; then
+        odir="$(pwd | xargs basename)"
+    fi
+    zip="${TEMP:-/tmp}/ARCHIVE.zip"
+
+    ## Operations.
+    echo "Compressing ..."
+    rm -f "${zip}"
+    7z a ${args} "${zip}" "${@:-.}" >/dev/null
+
+    echo "Uploading ..."
+    scp "${zip}" "${machine}:.ARCHIVE.zip"
+
+    ssh m153 "set -e
+        echo 'Extracting ...'
+        mkdir -p '${odir}'
+        7z x -y -o'${odir}' .ARCHIVE.zip >/dev/null
+        rm -f .ARCHIVE.zip
+        "
+}
+if ! which 7z scp ssh >/dev/null 2>&1; then
+    echo >&2 "error: Please install 7z, scp, ssh."
+    exit 0
+fi
+if test @"$(basename "$0")" = @"ssh-h-7z";then
+    case "${1}" in
+        -h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)         ssh_h_7z "$@"; exit 0;;
+    esac
+fi
