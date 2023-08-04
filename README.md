@@ -8,7 +8,24 @@ ssh-h-7z
 
     Usage: ssh-h-7z [-o ODIR][-D SKIP-DIR] MACHINE [FILES...]
     
-    Create zip with 7z and extract into a remote machine.
+    Create a zip with 7z (by default working directory) and extract
+    into a remote machine in ODIR (by default pwd's basename).
+    
+    You can add directories to skip, such as .git with -D.
+
+ssh-h-authorized-keys
+
+    Usage: ssh-h-authorized-keys -f FILE SSH-HOSTS...
+    
+    Replace authorized_keys in remote machines.
+
+ssh-h-docker-send
+
+    Usage: ssh-h-docker-send [-p][-u URL][-a < IMAGE-NAMES]
+    
+    Upload docker images to remote machines.
+    
+      -p : Run 'docker pull URL' in the remote machine 8default).
 
 ssh-h-mount
 

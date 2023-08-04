@@ -2,7 +2,10 @@
 ##:
 #h: Usage: ssh-h-7z [-o ODIR][-D SKIP-DIR] MACHINE [FILES...]
 #h:
-#h: Create zip with 7z and extract into a remote machine.
+#h: Create a zip with 7z (by default working directory) and extract
+#h: into a remote machine in ODIR (by default pwd's basename).
+#h:
+#h: You can add directories to skip, such as .git with -D.
 ##:
 ssh_h_7z() {
     local OPTIND optopt zip='' odir='' args='' machine=''

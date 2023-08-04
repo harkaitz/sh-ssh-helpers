@@ -1,0 +1,38 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-docker-send [-p][-u URL][-a < IMAGE-NAMES]
+#h:
+#h: Upload docker images to remote machines.
+#h:
+#h:   -p : Run 'docker pull URL' in the remote machine 8default).
+##:
+ssh_h_docker_send() {
+    local OPTIND optopt u m method=p opt_a= urls=
+    ## Parse command line arguments.
+    while getopts "pu:a" optopt; do
+        case $optopt in
+            p)  method="${optopt}";;
+            u)  urls="${urls} ${OPTARG}";;
+            a)  urls="${urls} $(cat)";;
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    for u in ${urls}; do
+        for m in "$@"; do
+            ssh_h_docker_send_"${method}" "${m}" "${u}"
+        done &
+        wait
+    done
+}
+ssh_h_docker_send_p() {
+    echo "${1}: docker pull --disable-content-trust '${2}'"
+    ssh "${1}" "docker pull --disable-content-trust '${2}'"
+}
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-docker-send";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)            ssh_h_docker_send "$@"; exit 0    ;;
+    esac
+fi

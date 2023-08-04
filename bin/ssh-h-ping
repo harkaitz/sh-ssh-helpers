@@ -4,13 +4,16 @@
 ##:
 ssh_h_ping() {
     local m
-    for m in "$@"; do
+    for m in $(echo "$*" | tr ',' ' '); do
         printf '%-10s : ' "${m}"
-        ssh -o PasswordAuthentication=no \
-            -o BatchMode=yes \
-            -o ConnectTimeout=2 \
-            "${m}" \
-            "uname -a | sed 's| *\\#.*||'"
+        if ! ssh \
+             -o PasswordAuthentication=no \
+             -o BatchMode=yes \
+             -o ConnectTimeout=2 \
+             "${m}" \
+             "uname -a | sed 's| *\\#.*||'" 2>/dev/null; then
+            echo "ERROR"
+        fi
     done
 }
 if test @"$(basename "$0")" = @"ssh-h-ping"; then
