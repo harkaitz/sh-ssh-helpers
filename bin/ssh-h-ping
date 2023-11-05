@@ -1,10 +1,11 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-ping HOSTNAMES... : Login in remote machines.
+#h: Usage: ssh-h-ping SSH,... : Login in remote machines.
 ##:
+. ssh-h-list
 ssh_h_ping() {
     local m
-    for m in $(echo "$*" | tr ',' ' '); do
+    for m in $(ssh_h_list "$@"); do
         printf '%-10s : ' "${m}"
         if ! ssh \
              -o PasswordAuthentication=no \

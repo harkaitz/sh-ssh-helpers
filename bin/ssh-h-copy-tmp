@@ -1,0 +1,40 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-copy-tmp SSH[,...] FILES...
+#h:
+#h: Copy files to temporary directory or DDIR in remote windows
+#h: machines.
+#h:
+#h: View also: ssh-h-list(1)
+##:
+. ssh-h-list
+ssh_h_copy_tmp() {
+    local sshl="$1" ret="0" ssh dir file base cmd lst
+    shift
+    for ssh in $(ssh_h_list "${sshl}"); do
+        echo "== ${ssh}"
+        dir="$(ssh "${ssh}" 'echo "${DDIR:-${TEMP:-/tmp}}"')"
+        if test ! -n "${dir}"; then
+            ret="1"
+            continue
+        fi
+        cmd="cd '${dir}'"
+        for file in "$@"; do
+            base="$(basename "${file}")"
+            cmd="${cmd} ; test -e '${base}' || echo '${file}'"
+        done
+        lst="$(ssh "${ssh}" "${cmd}")"
+        if test -n "${lst}"; then
+            scp -r ${lst} "${ssh}":"${dir}" >&2
+        else
+            echo "Nothing to copy." >&2
+        fi
+    done
+    return "${ret}"
+}
+if test @"$(basename "$0")" = @"ssh-h-copy-tmp";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)            ssh_h_copy_tmp "$@"; exit 0;;
+    esac
+fi

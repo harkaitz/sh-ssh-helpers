@@ -1,0 +1,42 @@
+#!/bin/sh -e
+##:
+#h: Usage: argdb (-l | -i ID -p PARAM) ID:PARAM=VALUE:... ...
+##:
+argdb() {
+    local OPTIND optopt arg par IFS opt_l= opt_i= opt_p=
+    
+    ## Parse command line arguments.
+    while getopts "li:p:" optopt; do
+        case $optopt in
+            l)  opt_l=y;;
+            i)  opt_i="${OPTARG}";;
+            p)  opt_p="${OPTARG}";;
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    
+    ## Foreach argument.
+    for arg in "$@"; do
+        IFS=':'
+        set -- $arg
+        if test ! -n "$1"; then
+            continue
+        fi
+        if test -n "${opt_l}"; then
+            echo "$1"
+            continue
+        fi
+        if test -n "${opt_i}" && test ! @"${opt_i}" = @"$1"; then
+            continue
+        fi
+        shift
+        for par in "$@"; do echo "${par}"; done | sed -n "s|^${opt_p}=||p"
+    done
+}
+if test @"$(basename "$0")" = @"argdb";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)            argdb "$@"; exit 0;;
+    esac
+fi

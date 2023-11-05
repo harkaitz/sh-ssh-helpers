@@ -1,0 +1,90 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-docker OPTS... localhost|SSH...
+#h:
+#h:   -P           : Use podman.
+#h:   -d TAR=IMAGE : Create image tar and download.
+#h:   -u TAR       : Upload image tar.
+#h:   -p URL       : Pull image.
+#h:
+#h: Examples:
+#h: > ssh-h-docker -d a.tar=busybox -u a.tar m1 m2
+##:
+ssh_h_docker() {
+    local OPTIND optopt docker=docker ops= tar= img= url=
+    
+    ## Parse command line arguments.
+    while getopts "Pd:u:p:" optopt; do
+        ops="${ops}${optopt}"
+        case $optopt in
+            P)  docker=podman
+                ;;
+            d)  tar="$(echo "${OPTARG}" | cut -d = -f 1)"
+                img="$(echo "${OPTARG}" | cut -d = -f 2)"
+                ;;
+            u)  tar="${OPTARG}"
+                ;;
+            p)  url="${OPTARG}"
+                ;;
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    
+    ## Operations
+    case "${ops}" in *d*) ssh_h_docker_download "$1"; shift;; esac
+    case "${ops}" in *u*) ssh_h_docker_upload   "$1"; shift;; esac
+    case "${ops}" in *p*) ssh_h_docker_pull     "$1"; shift;; esac
+}
+ssh_h_docker_download() {
+    local ssh="$1"
+    case "${ssh}" in
+        '')
+            echo >&2 "error: Please specify a machine."
+            return 1
+            ;;
+        localhost)
+            echo "Saving ${img} to ${tar} ..."
+            ${docker} save -o "${tar}.tmp" "${img}"
+            mv "${tar}.tmp" "${tar}"
+            ;;
+        *)
+            ssh "${ssh}" "echo 'Packing ${img} ...'; ${docker} save -o '.image.tar' '${img}'"
+            scp "${ssh}:.image.tar" "${tar}.tmp"
+            ssh "${ssh}" "echo 'Cleaning up ...'; rm -f .image.tar"
+            mv "${tar}.tmp" "${tar}"
+            ;;
+    esac
+}
+ssh_h_docker_upload() {
+    local ssh="$1"
+    case "${ssh}" in
+        '')
+            echo >&2 "error: Please specify a machine."
+            return 1
+            ;;
+        localhost)
+            ${docker} load -i "${tar}"
+            ;;
+        *)
+            scp "${tar}" "${ssh}:.image.tar"
+            ssh "${ssh}" "${docker} load -i .image.tar; rm -f .image.tar"
+            ;;
+    esac
+}
+ssh_h_docker_pull() {
+    local ssh="$1"
+    case "${ssh}" in
+        '')        echo >&2 "error: Please specify a machine."; return 1          ;;
+        localhost) ${docker} pull --disable-content-trust "${url}"                ;;
+        *)         ssh "${ssh}" "${docker} pull --disable-content-trust '${url}'" ;;
+    esac
+}
+
+
+if test @"$(basename "$0")" = @"ssh-h-docker";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)            ssh_h_docker "$@"; exit 0;;
+    esac
+fi

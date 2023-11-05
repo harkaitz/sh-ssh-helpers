@@ -11,6 +11,16 @@ ssh_h_mount() {
     local uid="$(id -u)" gid="$(id -g)"
     local opt="reconnect,allow_other,cache=yes,cache_timeout=60"
     
+    ## Check environment.
+    if test @"$(uname -o)" = @"GNU/Linux"; then
+        echo >&2 "error: This script only runs on GNU/Linux."
+        return 1
+    fi
+    if ! which sudo sshfs >/dev/null 2>&1; then
+        echo >&2 "error: Please install 'sudo', 'sshfs'."
+        return 1
+    fi
+    
     ## Parse command line arguments.
     local host="$(echo "${1}" | sed    's|:.*||'      )"
     local dir1="$(echo "${1}" | sed -n 's|^[^:]*:||p' )"
@@ -35,10 +45,7 @@ ssh_h_mount() {
     sudo sshfs "${host}:${dir1}" "${dir2}" -o "${opt},uid=${uid},gid=${gid}"
     echo "Mounted ${host}:${dir1} on ${dir2}."
 }
-if ! which sudo sshfs >/dev/null 2>&1; then
-    echo >&2 "error: Please install 'sudo', 'sshfs'."
-    exit 1
-fi
+## -------------------------------------------------------------------
 if test @"$(basename "$0")" = @"ssh-h-mount";then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;

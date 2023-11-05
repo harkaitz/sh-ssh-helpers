@@ -1,19 +1,22 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-speed [USER@]HOST
+#h: Usage: ssh-h-speed SSH,...
 #h:
 #h: Tell the upload and download speed over SSH (requires GNU dd).
 ##:
+. ssh-h-list
 ssh_h_speed() {
-    local mb=40
-    if test ! -n "${1}"; then
-        echo "error: Please specify a hostname." >&2
-        return 1
-    fi
-    echo "[Upload (${mb} MB)]"
-    dd if=/dev/zero count=$((2*${mb}*1000)) status=none | ssh "${1}" dd of=/dev/null
-    echo "[Download (${mb} MB)]"
-    ssh "${1}" dd if=/dev/zero count=$((2*${mb}*1000)) status=none | dd of=/dev/null
+    local mb=40 srv cmd1 cmd2
+    cmd1="dd if=/dev/zero count=$((2*${mb}*1000)) status=none"
+    cmd2="dd of=/dev/null status=none"
+    
+    for srv in $(ssh_h_list "$@"); do
+        echo "== ${srv}"
+        echo "[Upload (${mb} MB)]"
+        time sh -c "${cmd1}" | ssh "${srv}" "${cmd2}"
+        echo "[Download (${mb} MB)]"
+        ssh "${srv}" "${cmd1}" | time sh -c "${cmd2}"
+    done
 }
 if test @"`basename "$0"`" = @"ssh-h-speed"; then
     case "${1}" in

@@ -1,14 +1,17 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-7z [-o ODIR][-D SKIP-DIR] MACHINE [FILES...]
+#h: Usage: ssh-h-7z [-o ODIR][-D SKIP-DIR] SSH,... [FILES...]
 #h:
 #h: Create a zip with 7z (by default working directory) and extract
 #h: into a remote machine in ODIR (by default pwd's basename).
 #h:
 #h: You can add directories to skip, such as .git with -D.
+#h:
+#h: View also: ssh-h-list(1)
 ##:
+. ssh-h-list
 ssh_h_7z() {
-    local OPTIND optopt zip='' odir='' args='' machine=''
+    local OPTIND optopt m zip='' odir='' args='' machine=''
 
     ## Parse command line arguments.
     while getopts "o:D:" optopt; do
@@ -35,19 +38,23 @@ ssh_h_7z() {
     zip="${TEMP:-/tmp}/ARCHIVE.zip"
 
     ## Operations.
-    echo "Compressing ..."
+    echo "== Compressing ..."
     rm -f "${zip}"
     7z a ${args} "${zip}" "${@:-.}" >/dev/null
-
-    echo "Uploading ..."
-    scp "${zip}" "${machine}:.ARCHIVE.zip"
-
-    ssh m153 "set -e
-        echo 'Extracting ...'
-        mkdir -p '${odir}'
-        7z x -y -o'${odir}' .ARCHIVE.zip >/dev/null
-        rm -f .ARCHIVE.zip
+    
+    ## Upload.
+    for m in $(ssh_h_list "${machine}"); do
+        echo "== ${m}: Uploading ..."
+        scp "${zip}" "${machine}:.ARCHIVE.zip"
+        ssh "${m}" "
+            set -e
+            
+            echo '== ${m}: Extracting ...'
+            test ! -n '${odir}' || mkdir -p '${odir}'
+            7z x -y -o'${odir:-.}' .ARCHIVE.zip >/dev/null
+            rm -f .ARCHIVE.zip
         "
+    done
 }
 if ! which 7z scp ssh >/dev/null 2>&1; then
     echo >&2 "error: Please install 7z, scp, ssh."

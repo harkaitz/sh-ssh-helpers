@@ -1,11 +1,15 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-authorized-keys -f FILE SSH-HOSTS...
+#h: Usage: ssh-h-authorized-keys -f FILE SSH,...
 #h:
 #h: Replace authorized_keys in remote machines.
+#h:
+#h: View also: ssh-h-list(1)
 ##:
+. ssh-h-list
 ssh_h_authorized_keys() {
-    local OPTIND optopt ssh= file=
+    local OPTIND optopt cmd= ssh= file=
+
     ## Parse command line arguments.
     while getopts "f:" optopt; do
         case $optopt in
@@ -14,23 +18,21 @@ ssh_h_authorized_keys() {
         esac
     done
     shift $(( $OPTIND - 1 ))
+    
     ## Require a file.
     if test ! -e "${file}"; then
         echo >&2 "error: Please specify an authorized_keys file."
         return 1
     fi
-    ## For each machine.
-    for ssh in "$@"; do
-        ssh "${ssh}" "$(sed -n '/[@]ASJDHG[@]/,/[@]ASJDHG[@]/p' "$0")" < "${file}"
-    done
     
-}
-ssh_h_authorized_keys_remote() (
-    ## @ASJDHG@
+    ## Command to execute.
+    cmd='
     mkdir -p ~/.ssh
 
     ## Read authorized keys.
-    cat > ~/.ssh/authorized_keys.tmp
+    cat > ~/.ssh/authorized_keys.tmp <<-KEYS
+	'"$(cat ${file})"'
+	KEYS
     if test @"$(wc -l < ~/.ssh/authorized_keys.tmp)" = @"0"; then
         echo >&2 "error: Empty authorized_keys."
         exit 1
@@ -45,12 +47,17 @@ ssh_h_authorized_keys_remote() (
         echo "Updating C:/ProgramData/ssh/administrators_authorized_keys ..."
         cp ~/.ssh/authorized_keys C:/ProgramData/ssh/administrators_authorized_keys
     fi
+    '
     
-    ## @ASJDHG@
-)
-
-
-
+    ## For each machine.
+    for ssh in $(ssh_h_list "$@"); do
+        echo "== ${ssh}"
+        ssh -T "${ssh}" sh <<-EOF
+	${cmd}
+	EOF
+    done
+    
+}
 if test @"$(basename "$0")" = @"ssh-h-authorized-keys";then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0"  ;;

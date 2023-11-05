@@ -1,0 +1,33 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-list l|HOST
+#h:
+#h: You can put a script in ~/.ssh/groups /etc/ssh/groups that takes
+#h: an argument and returns an SSH host list.
+##:
+ssh_h_list() {
+    local f a r
+    for a in $(echo "$1" | tr ',' ' '); do
+        r=
+        for f in ~/.ssh/groups /etc/ssh/groups; do
+            if test ! -e "${f}"; then
+                continue
+            fi  
+            r="$(sh -e "${f}" "${a}")"
+            if test -n "${r}"; then
+                break
+            fi
+        done
+        if test -n "${r}"; then
+            echo "${r}"
+        else
+            echo "${a}"
+        fi
+    done
+}
+if test @"$(basename "$0")" = @"ssh-h-list";then
+    case "${1}" in
+        -h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)         ssh_h_list "$@"; return 0         ;;
+    esac
+fi
