@@ -1,0 +1,31 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-services-hgencrt DOMAINS...
+#h:
+#h: Get the machine with "https" service with "ssh-h-services", then
+#h: shut it down and update the specified domain certificates with
+#h: hgencrt.
+##:
+. ssh-h-services
+. hgencrt
+ssh_h_services_hgencrt() {
+    local ssh
+    if ! which certbot >/dev/null 2>&1; then
+        echo >&2 "error: Please install certbot."
+        return 1
+    fi
+    ssh="$(ssh_h_services https machine)"; test -n "${ssh}"
+    ssh_h_services https stop
+    hgencrt ssh-redirect "${ssh}"
+    hgencrt issue "$@"
+    hgencrt ssh-unredirect "${ssh}"
+    hgencrt install "${ssh}" "$@"
+    ssh_h_services https start
+}
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-services-hgencrt";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_services_hgencrt "$@"; exit 0;;
+    esac
+fi

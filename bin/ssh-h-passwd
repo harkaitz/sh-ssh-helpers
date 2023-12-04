@@ -1,0 +1,89 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-passwd [-c FILE] SSH,...
+#h:
+#h: Print all users that can log to a system in the specified
+#h: SSH machines. If the -c option is specified, change the
+#h: password of the users and append to the specified file.
+##:
+. ssh-h-list
+ssh_h_passwd() {
+    local OPTIND optopt ssh os pw u opt_c=
+
+    ## Parse command line arguments.
+    while getopts "c:" optopt; do
+        case $optopt in
+            c)  opt_c="${OPTARG}";;
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+
+    ## For each specified machine.
+    for ssh in $(ssh_h_list "$@"); do
+        os="$(ssh -T "${ssh}" "uname -o")"
+        for u in $(ssh_h_passwd_list_users "${os}" "${ssh}"); do
+            if test -n "${opt_c}"; then
+                pw="$(ssh_h_passwd_change_password "${os}" "${ssh}" "${u}")"
+                test -n "${pw}"
+            else
+                pw="-"
+            fi
+            if test -n "${opt_c}"; then
+                printf '%-20s %-20s %s\n' "${ssh}" "${u}" "${pw}" | tee -a "${opt_c}"
+            else
+                printf '%-20s %-20s -\n'  "${ssh}" "${u}"
+            fi
+
+        done
+    done
+}
+## -------------------------------------------------------------------
+ssh_h_passwd_list_users() {
+    ## List all users that can log to a system.
+    case "$1" in
+        MS/Windows)
+            local sed='
+            1,/-----/d
+            s/WDAGUtilityAccount//g
+            s/DefaultAccount//
+            /The command/d # Shity windows.
+            /El comando/d
+            s|  *|\n|g
+            '
+            ssh -T "$2" "net user | sed '${sed}' | sed '/^ *\$/d'" </dev/null
+            ;;
+        GNU/Linux)
+            local sed='
+            s|^\([^:]*\):\$.*|\1|p
+            '
+            ssh -T "$2" "sudo sed -n '${sed}' /etc/shadow | sed '/^ *\$/d'" </dev/null
+            ;;
+        *)
+            echo >&2 'error: Unsupported platform.'
+            return 1
+            ;;
+    esac
+}
+ssh_h_passwd_change_password() {
+    case "$1" in
+        MS/Windows)
+            ssh -T "$2" "net user '$3' /random | sed -n '1s|^[^:]*: *||p'" </dev/null;;
+        GNU/Linux)
+            ssh -T "$2" "
+            set -e
+            pw=\"\$(tr -dc A-Za-z0-9 </dev/urandom | head -c 8)\"
+            test -n \"\$pw\"
+            echo \"$3:\$pw\" | sudo chpasswd >/dev/null
+            echo \"\$pw\"
+            "
+            ;;
+    esac
+}
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-passwd";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_passwd "$@"; exit 0;;
+    esac
+fi

@@ -1,0 +1,45 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-setenv SSH,... KEY[=VALUE] ...
+#h:
+#h: Get/set environment variables.
+##:
+. ssh-h-list
+ssh_h_setenv() {
+    local sshl="$1" ssh kv key val
+    shift
+    for ssh in $(ssh_h_list ${sshl}); do
+        echo "== ${ssh}"
+        for kv in "$@"; do
+            key="$(echo "${kv}" | sed    's|=.*||'      )"
+            val="$(echo "${kv}" | sed -n 's|^[^=]*=||p' )"
+            if test -n "${val}"; then
+                ssh_h_setenv_set "${ssh}" "${key}" "${val}"
+            fi
+            ssh_h_setenv_get "${ssh}" "${key}"
+        done
+    done
+}
+## -------------------------------------------------------------------
+ssh_h_setenv_get() {
+    ssh -T "$1" "echo \"${2}=\$${2}\"" </dev/null
+}
+ssh_h_setenv_set() {
+    ssh -T "$1" "
+    k='$2' v='$3'
+    "'
+    if test @"$(uname -o)" = @"MS/Windows"; then
+        setx "$k" "$v" >/dev/null
+    else
+        sudo sed -i "/$k=/d" /etc/environment
+        echo $k=\"$v\" | sudo tee -a /etc/environment >/dev/null
+    fi
+    ' </dev/null
+}
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-setenv";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_setenv "$@"; exit 0;;
+    esac
+fi

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 ##:
-#h: Usage: $0 root@MACHINE [-i][-u USER[=PASSWD]]
+#h: Usage: ssh-h-sudoinit root@MACHINE [-i][-u USER[=PASSWD]]
 #h:
 #h: -i : If machine is root@MACHINE:
 #h:      - Sets the shell to '/bin/sh', usefull in FreeBSD.

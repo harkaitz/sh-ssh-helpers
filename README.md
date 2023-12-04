@@ -4,21 +4,6 @@ Helper little programs around *OpenSSH*.
 
 ## Help
 
-argdb
-
-    Usage: argdb (-l | -i ID -p PARAM) ID:PARAM=VALUE:... ...
-
-ssh-h-7z
-
-    Usage: ssh-h-7z [-o ODIR][-D SKIP-DIR] SSH,... [FILES...]
-    
-    Create a zip with 7z (by default working directory) and extract
-    into a remote machine in ODIR (by default pwd's basename).
-    
-    You can add directories to skip, such as .git with -D.
-    
-    View also: ssh-h-list(1)
-
 ssh-h-authorized-keys
 
     Usage: ssh-h-authorized-keys -f FILE SSH,...
@@ -26,6 +11,17 @@ ssh-h-authorized-keys
     Replace authorized_keys in remote machines.
     
     View also: ssh-h-list(1)
+
+ssh-h-config
+
+    Usage: ssh-h-config OPTS... SSH,...
+    
+      -gC1 : Get configuration file pathname.
+      -gC2 : Print configuration file.
+      -dP  : Disable password login.
+      -r   : Restart SSHD service.
+    
+    Configure the SSH servers in machines.
 
 ssh-h-copy-tmp
 
@@ -48,6 +44,12 @@ ssh-h-docker
     Examples:
     > ssh-h-docker -d a.tar=busybox -u a.tar m1 m2
 
+ssh-h-history
+
+    Usage: ssh-h-history -V -d SSH,...
+    
+    Print last commands on each machine, or download and clean (-d).
+
 ssh-h-list
 
     Usage: ssh-h-list l|HOST
@@ -61,6 +63,25 @@ ssh-h-mount
     
     Mount remote SSH directory using sshfs(1).
 
+ssh-h-netstat
+
+    Usage: ssh-h-netstat -V SSH,...
+    
+    List listening ports in machines applying some filters.
+    
+    - /etc/ssh-h-netstat/services.sed
+    - /etc/ssh-h-netstat/services.$(uname -s).sed
+    
+    Environment variables: SSH_H_NETSTAT_DIRECTORY
+
+ssh-h-passwd
+
+    Usage: ssh-h-passwd [-c FILE] SSH,...
+    
+    Print all users that can log to a system in the specified
+    SSH machines. If the -c option is specified, change the
+    password of the users and append to the specified file.
+
 ssh-h-ping
 
     Usage: ssh-h-ping SSH,... : Login in remote machines.
@@ -71,21 +92,23 @@ ssh-h-send
     
     Send files to a remote directory using `tar(1)` and `ssh(1)`.
 
-ssh-h-service
+ssh-h-services
 
-    Usage: ssh-h-service [OPS...] MACHINE:s=SERVICE ...
+    Usage: ssh-h-services [-V] [SERVICE] [OPERATION]
+
+ssh-h-services-hgencrt
+
+    Usage: ssh-h-services-hgencrt DOMAINS...
     
-    Manage services in remote machines.
+    Get the machine with "https" service with "ssh-h-services", then
+    shut it down and update the specified domain certificates with
+    hgencrt.
+
+ssh-h-setenv
+
+    Usage: ssh-h-setenv SSH,... KEY[=VALUE] ...
     
-      -D : Get init system.
-      -T : Print tail of service logs. [-c tail]
-    
-      -v : View service status. [-c status]
-      -e : Enable services.     [-c enable]
-      -r : Restart services.    [-c restart]
-      -s : Start service.       [-c start]
-      -p : Stop service.        [-c stop]
-    
+    Get/set environment variables.
 
 ssh-h-speed
 

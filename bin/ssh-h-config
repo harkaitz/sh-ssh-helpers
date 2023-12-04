@@ -1,0 +1,80 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-config OPTS... SSH,...
+#h:
+#h:   -gC1 : Get configuration file pathname.
+#h:   -gC2 : Print configuration file.
+#h:   -dP  : Disable password login.
+#h:   -r   : Restart SSHD service.
+#h:
+#h: Configure the SSH servers in machines.
+##:
+. ssh-h-list
+ssh_h_config() {
+    local OPTIND optopt ssh ops=
+    
+    ## Parse command line arguments.
+    while getopts "gdCP12r" optopt; do
+        ops="${ops}${optopt}"
+        case $optopt in
+            
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    
+    ## Operations.
+    for ssh in $(ssh_h_list "$@"); do
+        case "${ops}" in *gC1*) ssh_h_config_file_path        "${ssh}" ;; esac
+        case "${ops}" in *gC2*) ssh_h_config_file_content     "${ssh}" ;; esac
+        case "${ops}" in *dP*)  ssh_h_config_disable_password "${ssh}" ;; esac
+        case "${ops}" in *r*)   ssh_h_config_restart          "${ssh}" ;; esac
+    done
+}
+## -------------------------------------------------------------------
+ssh_h_config_file_path() {
+    ssh -T "$1" "${SSH_H_GET_F} printf '%-20s %s\\n' \"$1\" \"\$f\""
+}
+ssh_h_config_file_content() {
+    ssh -T "$1" "${SSH_H_GET_F} sed 's|^|$1:|' \"\$f\""
+}
+ssh_h_config_disable_password() {
+    local sed='
+    s|^\#*PasswordAuthentication .*|PasswordAuthentication no|
+    '
+    echo "Disabling SSH password login in ${1} ..."
+    ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
+}
+ssh_h_config_restart() {
+    echo "Restarting SSH service in ${1} ..."
+    ssh -T "$1" '
+    if test @"$(uname -o)" = @"MS/Windows"; then
+        sc stop sshd; sc start sshd
+    elif test @"$(uname -o)" = @"GNU/Linux" && test -e /lib/systemd/system/ssh.service; then
+        sudo systemctl restart sshd
+    else
+        echo >&2 "error: Unknown platform."
+        exit 1
+    fi
+    '
+}
+## -------------------------------------------------------------------
+SSH_H_GET_F='
+    if test @"$(uname -o)" = @"MS/Windows"; then
+        f="C:/ProgramData/ssh/sshd_config"
+        sudo=
+    elif test @"$(uname -o)" = @"GNU/Linux"; then
+        f="/etc/ssh/sshd_config"
+        sudo=sudo
+    else
+        echo >&2 "error: Cannot find SSHD configuration file."
+        exit 1
+    fi
+'
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-config";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_config "$@"; exit 0        ;;
+    esac
+fi
