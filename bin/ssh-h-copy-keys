@@ -1,0 +1,47 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-copy-keys -s ID_RSA -p ID_RSA.pub SSH,...
+#h:
+#h: Set secret and public keys of other machines so that they
+#h: can connect to other machines.
+##:
+. ssh-h-list
+ssh_h_copy_keys() {
+    local OPTIND optopt ssh seckey= pubkey=
+    
+    ## Parse command line arguments.
+    while getopts "s:p:" optopt; do
+        case $optopt in
+            s)  seckey="${OPTARG}";;
+            p)  pubkey="${OPTARG}";;
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    
+    ##
+    for ssh in $(ssh_h_list "$@"); do
+        echo "== ${ssh}"
+        if test -n "${seckey}${pubkey}"; then
+            rm -rf ~/.ssh/tmp/keys
+            mkdir -p ~/.ssh/tmp/keys
+            test ! -n "${seckey}" || cp "${seckey}" ~/.ssh/tmp/keys/id_rsa
+            test ! -n "${pubkey}" || cp "${pubkey}" ~/.ssh/tmp/keys/id_rsa.pub
+            tar cf - -C ~/.ssh/tmp/keys . | ssh -T "${ssh}" "
+                set -e
+                mkdir -p ~/.ssh
+                tar xf - -C ~/.ssh -om --no-same-permissions
+                ${seckey:+ chmod 0600 ~/.ssh/id_rsa }
+            "
+            rm -rf ~/.ssh/tmp/keys
+        fi
+        ssh -T "${ssh}" 'cat ~/.ssh/id_rsa.pub || true' </dev/null
+    done
+}
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-copy-keys"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)            ssh_h_copy_keys "$@"; exit 0      ;;
+    esac
+fi

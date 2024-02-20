@@ -15,19 +15,19 @@ install: install-sh
 install-sh:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-history    $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-mount      $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-windows    $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-power      $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-authorized-keys $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-passwd     $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-send       $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-copy-keys  $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-config     $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-profile    $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-list       $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-copy-tmp   $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-gitconfig  $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-ping       $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-services   $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-services-hgencrt $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-check      $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-speed      $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-sudoinit   $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-setenv     $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-docker     $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-netstat    $(DESTDIR)$(PREFIX)/bin
 ## -- BLOCK:sh --

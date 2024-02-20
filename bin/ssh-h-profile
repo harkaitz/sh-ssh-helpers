@@ -1,0 +1,41 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-profile [-u PROFILE] SSH,...
+#h:
+#h: Add/update ~/.profile in remote machines.
+##:
+. ssh-h-list
+ssh_h_profile() {
+    local OPTIND optopt opt_u=
+
+    ## Parse command line arguments.
+    while getopts "u:" optopt; do
+        case $optopt in
+            u)  opt_u="${OPTARG}";;
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    
+    ## Operations.
+    for ssh in $(ssh_h_list "$@"); do
+        echo "== ${ssh}"
+        if test ! -n "${opt_u}"; then
+            continue
+        fi
+        dos2unix < "${opt_u}" | ssh -T "${ssh}" '
+        echo "Updating ~/.profile ..."
+        test ! -f ~/.profile || sed -i "/PROFILE/,/PROFILE/d" ~/.profile
+        echo "## -- PROFILE --" >> ~/.profile
+        cat                     >> ~/.profile
+        echo "## -- PROFILE --" >> ~/.profile
+        '
+    done
+}
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-profile"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_profile "$@"; exit 0;;
+    esac
+fi

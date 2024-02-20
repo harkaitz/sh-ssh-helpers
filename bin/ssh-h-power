@@ -1,0 +1,55 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-power SSH,... [off|restart]
+#h:
+#h: Power off (off) or restart (restart) remote machines running
+#h: Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
+##:
+. ssh-h-list
+ssh_h_power() {
+    local m
+    for m in $(ssh_h_list "$1"); do
+        case "$2" in
+            '')      printf '%-10s : ' "${m}"; ssh_h_power_status  "$m";;
+            off)     printf '%-10s : ' "${m}"; ssh_h_power_off     "$m";;
+            restart) printf '%-10s : ' "${m}"; ssh_h_power_restart "$m";;
+            *)       echo >&2 "error: Invalid argument: ${m}"; return 1;;
+        esac
+    done
+}
+## -------------------------------------------------------------------
+ssh_h_power_status() {
+    ssh "$1" "uptime" || true
+}
+ssh_h_power_off() {
+    ssh "$1" '
+    case "$(uname -s)" in
+        Linux)      shutdown -h now    ;;
+        OpenBSD)    shutdown -p now    ;;
+        Windows_NT) cmd /C shutdown /p ;;
+        MSYS_*)     cmd /C shutdown /p ;;
+        CYGWIN_*)   cmd /C shutdown /p ;;
+        *)          echo >&2 "error: Unsupported platform: $(uname -s)."; exit 1;;
+    esac
+    ' || true
+}
+ssh_h_power_restart() {
+    ssh "$1" '
+    case "$(uname -s)" in
+        Linux)      shutdown -h now    ;;
+        OpenBSD)    shutdown -p now    ;;
+        Windows_NT) cmd /C shutdown /p ;;
+        MSYS_*)     cmd /C shutdown /p ;;
+        CYGWIN_*)   cmd /C shutdown /p ;;
+        *)          echo >&2 "error: Unsupported platform: $(uname -s)."; exit 1;;
+    esac
+    ' || true
+}
+
+## -------------------------------------------------------------------
+if test @"$(basename "$0")" = @"ssh-h-power";then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_power "$@"; exit 0;;
+    esac
+fi

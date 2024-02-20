@@ -6,11 +6,15 @@ Helper little programs around *OpenSSH*.
 
 ssh-h-authorized-keys
 
-    Usage: ssh-h-authorized-keys -f FILE SSH,...
+    Usage: ssh-h-authorized-keys -a (append) -f FILE SSH,...
     
     Replace authorized_keys in remote machines.
     
     View also: ssh-h-list(1)
+
+ssh-h-check
+
+    Usage: ssh-h-check -l | SSH,... CHECKS...
 
 ssh-h-config
 
@@ -23,6 +27,12 @@ ssh-h-config
     
     Configure the SSH servers in machines.
 
+ssh-h-copy-keys
+
+    Usage: ssh-h-copy-keys -s ID_RSA -p ID_RSA.pub SSH,...
+    
+    Set secret and public keys of other machines.
+
 ssh-h-copy-tmp
 
     Usage: ssh-h-copy-tmp SSH[,...] FILES...
@@ -32,17 +42,12 @@ ssh-h-copy-tmp
     
     View also: ssh-h-list(1)
 
-ssh-h-docker
+ssh-h-gitconfig
 
-    Usage: ssh-h-docker OPTS... localhost|SSH...
+    Usage: ssh-h-gitconfig [-u FILE.sh] SSH,...
     
-      -P           : Use podman.
-      -d TAR=IMAGE : Create image tar and download.
-      -u TAR       : Upload image tar.
-      -p URL       : Pull image.
-    
-    Examples:
-    > ssh-h-docker -d a.tar=busybox -u a.tar m1 m2
+    Update/check system git configuration of a machine. Write a
+    script that prints a ".gitconfig" and pass with -u.
 
 ssh-h-history
 
@@ -57,23 +62,6 @@ ssh-h-list
     You can put a script in ~/.ssh/groups /etc/ssh/groups that takes
     an argument and returns an SSH host list.
 
-ssh-h-mount
-
-    Usage: ssh-h-mount SSH[:REMOTE] [LOCAL]
-    
-    Mount remote SSH directory using sshfs(1).
-
-ssh-h-netstat
-
-    Usage: ssh-h-netstat -V SSH,...
-    
-    List listening ports in machines applying some filters.
-    
-    - /etc/ssh-h-netstat/services.sed
-    - /etc/ssh-h-netstat/services.$(uname -s).sed
-    
-    Environment variables: SSH_H_NETSTAT_DIRECTORY
-
 ssh-h-passwd
 
     Usage: ssh-h-passwd [-c FILE] SSH,...
@@ -86,23 +74,21 @@ ssh-h-ping
 
     Usage: ssh-h-ping SSH,... : Login in remote machines.
 
+ssh-h-power
+
+    Usage: ssh-h-power SSH,... [off|restart]
+
+ssh-h-profile
+
+    Usage: ssh-h-profile [-u PROFILE] SSH,...
+    
+    Add/update profile in CI machines.
+
 ssh-h-send
 
     Usage: ssh-h-send SSH,...:DIRECTORY FILES...
     
     Send files to a remote directory using `tar(1)` and `ssh(1)`.
-
-ssh-h-services
-
-    Usage: ssh-h-services [-V] [SERVICE] [OPERATION]
-
-ssh-h-services-hgencrt
-
-    Usage: ssh-h-services-hgencrt DOMAINS...
-    
-    Get the machine with "https" service with "ssh-h-services", then
-    shut it down and update the specified domain certificates with
-    hgencrt.
 
 ssh-h-setenv
 
@@ -116,18 +102,15 @@ ssh-h-speed
     
     Tell the upload and download speed over SSH (requires GNU dd).
 
-ssh-h-sudoinit
+ssh-h-windows
 
-    Usage: ssh-h-sudoinit root@MACHINE [-i][-u USER[=PASSWD]]
+    Usage: ssh-h-windows -OPS MACHINE
     
-    -i : If machine is root@MACHINE:
-         - Sets the shell to '/bin/sh', usefull in FreeBSD.
-         - Copies your public SSH certificate.
-         If machine is FreeBSD:
-         - Installs sudo.
-         Makes sudo to not require password.
-    -u : Add user if does not exist, set password and add to `wheel` group.
-         - Copies authorized ssh keys.
+    Configure a MS Windows machine with a busybox shell.
+    
+      -u 32|64 : Upload busybox (step1).
+      -p       : Enable public key auth (step2).
+      -c       : Link to "sh.exe" and "vi.exe".
 
 ## Collaborating
 
