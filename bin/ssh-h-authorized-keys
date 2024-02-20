@@ -1,6 +1,6 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-authorized-keys -f FILE SSH,...
+#h: Usage: ssh-h-authorized-keys -a (append) -f FILE SSH,...
 #h:
 #h: Replace authorized_keys in remote machines.
 #h:
@@ -8,12 +8,13 @@
 ##:
 . ssh-h-list
 ssh_h_authorized_keys() {
-    local OPTIND optopt cmd= ssh= file=
+    local OPTIND optopt opt_a= cmd= ssh= file=
 
     ## Parse command line arguments.
-    while getopts "f:" optopt; do
+    while getopts "af:" optopt; do
         case $optopt in
             f)  file="${OPTARG}";;
+            a)  opt_a=y;;
             \?) return 1;;
         esac
     done
@@ -28,31 +29,30 @@ ssh_h_authorized_keys() {
     ## Command to execute.
     cmd='
     mkdir -p ~/.ssh
-
-    ## Read authorized keys.
     cat > ~/.ssh/authorized_keys.tmp <<-KEYS
 	'"$(cat ${file})"'
 	KEYS
     if test @"$(wc -l < ~/.ssh/authorized_keys.tmp)" = @"0"; then
         echo >&2 "error: Empty authorized_keys."
         exit 1
+    fi'
+    if test -n "${opt_a}"; then
+        cmd="${cmd}"'
+        echo "Appending to ~/.ssh/authorized_keys ..."
+        cat ~/.ssh/authorized_keys.tmp >> ~/.ssh/authorized_keys
+        rm -f ~/.ssh/authorized_keys.tmp'
+    else
+        cmd="${cmd}"'
+        echo "Updating ~/.ssh/authorized_keys ..."
+        mv ~/.ssh/authorized_keys.tmp ~/.ssh/authorized_keys'
     fi
 
-    ## Update normal location.
-    echo "Updating ~/.ssh/authorized_keys ..."
-    mv ~/.ssh/authorized_keys.tmp ~/.ssh/authorized_keys
-
-    ## Update windows location.
-    if test -w C:/ProgramData/ssh; then
-        echo "Updating C:/ProgramData/ssh/administrators_authorized_keys ..."
-        cp ~/.ssh/authorized_keys C:/ProgramData/ssh/administrators_authorized_keys
-    fi
-    '
+    
     
     ## For each machine.
     for ssh in $(ssh_h_list "$@"); do
         echo "== ${ssh}"
-        ssh -T "${ssh}" sh <<-EOF
+        env ssh -T "${ssh}" sh <<-EOF
 	${cmd}
 	EOF
     done

@@ -25,6 +25,13 @@ ssh_h_list() {
         fi
     done
 }
+ssh() {
+    if env ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2 "$@"; then
+        return 0
+    else
+        return 1
+    fi
+}
 if test @"$(basename "$0")" = @"ssh-h-list";then
     case "${1}" in
         -h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;

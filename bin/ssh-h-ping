@@ -7,12 +7,7 @@ ssh_h_ping() {
     local m
     for m in $(ssh_h_list "$@"); do
         printf '%-10s : ' "${m}"
-        if ! ssh \
-             -o PasswordAuthentication=no \
-             -o BatchMode=yes \
-             -o ConnectTimeout=2 \
-             "${m}" \
-             "uname -a | sed 's| *\\#.*||'" 2>/dev/null; then
+        if ! ssh "${m}" "uname -a | sed 's| *\\#.*||'" 2>/dev/null; then
             echo "ERROR"
         fi
     done
