@@ -1,6 +1,6 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-copy-keys -s ID_RSA -p ID_RSA.pub SSH,...
+#h: Usage: ssh-h-copy-keys [-s ID_RSA -p ID_RSA.pub] SSH,...
 #h:
 #h: Set secret and public keys of other machines so that they
 #h: can connect to other machines.

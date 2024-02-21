@@ -2,14 +2,14 @@
 ##:
 #h: Usage: ssh-h-list l|HOST
 #h:
-#h: You can put a script in ~/.ssh/groups /etc/ssh/groups that takes
+#h: You can put a script in SSH_H_LIST ~/.ssh/groups /etc/ssh/groups that takes
 #h: an argument and returns an SSH host list.
 ##:
 ssh_h_list() {
     local f a r
     for a in $(echo "$1" | tr ',' ' '); do
         r=
-        for f in ~/.ssh/groups /etc/ssh/groups; do
+        for f in ${SSH_H_LIST} ~/.ssh/groups /etc/ssh/groups; do
             if test ! -e "${f}"; then
                 continue
             fi  
