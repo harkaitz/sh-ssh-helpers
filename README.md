@@ -15,6 +15,9 @@ ssh-h-authorized-keys
 ssh-h-check
 
     Usage: ssh-h-check -l | SSH,... CHECKS...
+    
+    Define checks writting "check__NAME" scripts and execute in
+    remote machines.
 
 ssh-h-config
 
@@ -29,9 +32,10 @@ ssh-h-config
 
 ssh-h-copy-keys
 
-    Usage: ssh-h-copy-keys -s ID_RSA -p ID_RSA.pub SSH,...
+    Usage: ssh-h-copy-keys [-s ID_RSA -p ID_RSA.pub] SSH,...
     
-    Set secret and public keys of other machines.
+    Set secret and public keys of other machines so that they
+    can connect to other machines.
 
 ssh-h-copy-tmp
 
@@ -59,7 +63,7 @@ ssh-h-list
 
     Usage: ssh-h-list l|HOST
     
-    You can put a script in ~/.ssh/groups /etc/ssh/groups that takes
+    You can put a script in SSH_H_LIST ~/.ssh/groups /etc/ssh/groups that takes
     an argument and returns an SSH host list.
 
 ssh-h-passwd
@@ -77,12 +81,21 @@ ssh-h-ping
 ssh-h-power
 
     Usage: ssh-h-power SSH,... [off|restart]
+    
+    Power off (off) or restart (restart) remote machines running
+    Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
 
 ssh-h-profile
 
     Usage: ssh-h-profile [-u PROFILE] SSH,...
     
-    Add/update profile in CI machines.
+    Add/update ~/.profile in remote machines.
+
+ssh-h-run
+
+    Usage: ssh-h-run SSH,... COMMAND
+    
+    Execute the same command in multiple machines.
 
 ssh-h-send
 
@@ -104,13 +117,21 @@ ssh-h-speed
 
 ssh-h-windows
 
-    Usage: ssh-h-windows -OPS MACHINE
+    Usage: ssh-h-windows -OPS SSH-MACHINE
     
     Configure a MS Windows machine with a busybox shell.
     
       -u 32|64 : Upload busybox (step1).
       -p       : Enable public key auth (step2).
       -c       : Link to "sh.exe" and "vi.exe".
+
+ssh-h-wireshark
+
+    Usage: ssh-h-wireshark [-f FILTER] SSH INTF
+    
+    Examples:
+    $ ssh-h-wireshark -f 'ip.src != 192.168.1.0/24' obsd1 bse0
+    (tcp.port == 443)
 
 ## Collaborating
 

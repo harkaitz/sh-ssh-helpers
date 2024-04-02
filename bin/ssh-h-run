@@ -1,0 +1,25 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-run SSH,... COMMAND
+#h:
+#h: Execute the same command in multiple machines.
+##:
+. ssh-h-list
+ssh_h_run() {
+    local ssh="$1"
+    if test ! -n "$1"; then
+        echo >&2 "error: Please specify an SSH machine."
+        return 1
+    fi
+    shift
+    for ssh in $(ssh_h_list "$ssh"); do
+        echo "== ${ssh}"
+        ssh "$ssh" "$*" || true
+    done
+}
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-run"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_run "$@"; exit 0;;
+    esac
+fi
