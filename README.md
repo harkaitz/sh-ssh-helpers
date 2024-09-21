@@ -85,12 +85,6 @@ ssh-h-power
     Power off (off) or restart (restart) remote machines running
     Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
 
-ssh-h-profile
-
-    Usage: ssh-h-profile [-u PROFILE] SSH,...
-    
-    Add/update ~/.profile in remote machines.
-
 ssh-h-run
 
     Usage: ssh-h-run SSH,... COMMAND
