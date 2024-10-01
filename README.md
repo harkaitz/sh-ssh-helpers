@@ -50,8 +50,9 @@ ssh-h-gitconfig
 
     Usage: ssh-h-gitconfig [-u FILE.sh] SSH,...
     
-    Update/check system git configuration of a machine. Write a
-    script that prints a ".gitconfig" and pass with -u.
+    This program installs the "FILE.sh" in the remote machine's
+    home directory "~/.gitconfig.sh" (when -u given) and then it
+    executes it to update "~/.gitconfig".
 
 ssh-h-history
 

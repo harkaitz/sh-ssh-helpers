@@ -2,8 +2,9 @@
 ##:
 #h: Usage: ssh-h-gitconfig [-u FILE.sh] SSH,...
 #h:
-#h: Update/check system git configuration of a machine. Write a
-#h: script that prints a ".gitconfig" and pass with -u.
+#h: This program installs the "FILE.sh" in the remote machine's
+#h: home directory "~/.gitconfig.sh" (when -u given) and then it
+#h: executes it to update "~/.gitconfig".
 ##:
 . ssh-h-list
 ssh_h_gitconfig() {
@@ -49,7 +50,7 @@ ssh_h_gitconfig_check() {
     ' < /dev/null
 }
 ## -------------------------------------------------------------------
-if test @"$(basename "$0")" = @"ssh-h-gitconfig"; then
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-gitconfig"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
         *)            ssh_h_gitconfig "$@"; exit 0      ;;
