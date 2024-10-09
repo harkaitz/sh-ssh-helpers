@@ -5,6 +5,8 @@
 #h: This program installs the "FILE.sh" in the remote machine's
 #h: home directory "~/.gitconfig.sh" (when -u given) and then it
 #h: executes it to update "~/.gitconfig".
+#h:
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_gitconfig() {

@@ -3,6 +3,8 @@
 #h: Usage: ssh-h-speed SSH,...
 #h:
 #h: Tell the upload and download speed over SSH (requires GNU dd).
+#h:
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_speed() {
@@ -18,7 +20,8 @@ ssh_h_speed() {
         ssh "${srv}" "${cmd1}" | time sh -c "${cmd2}"
     done
 }
-if test @"$(basename "$0")" = @"ssh-h-speed"; then
+## -------------------------------------------------------------------
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-speed"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
         *)            ssh_h_speed "$@"; exit 0;;

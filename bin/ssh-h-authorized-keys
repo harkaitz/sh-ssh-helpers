@@ -1,10 +1,12 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-authorized-keys -a (append) -f FILE SSH,...
+#h: Usage: ssh-h-authorized-keys [-a] -f FILE SSH,...
 #h:
-#h: Replace authorized_keys in remote machines.
+#h: This program replaces "~/.ssh/authorized_keys" in remote machines
+#h: specified by "SSH,..." with "FILE". If "-a" is specified the keys
+#h: in FILE are appended, keeping those already installed.
 #h:
-#h: View also: ssh-h-list(1)
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_authorized_keys() {
@@ -46,8 +48,6 @@ ssh_h_authorized_keys() {
         echo "Updating ~/.ssh/authorized_keys ..."
         mv ~/.ssh/authorized_keys.tmp ~/.ssh/authorized_keys'
     fi
-
-    
     
     ## For each machine.
     for ssh in $(ssh_h_list "$@"); do
@@ -58,7 +58,7 @@ ssh_h_authorized_keys() {
     done
     
 }
-if test @"$(basename "$0")" = @"ssh-h-authorized-keys";then
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-authorized-keys"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0"  ;;
         *)            ssh_h_authorized_keys "$@"; exit 0 ;;

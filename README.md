@@ -6,45 +6,49 @@ Helper little programs around *OpenSSH*.
 
 ssh-h-authorized-keys
 
-    Usage: ssh-h-authorized-keys -a (append) -f FILE SSH,...
+    Usage: ssh-h-authorized-keys [-a] -f FILE SSH,...
     
-    Replace authorized_keys in remote machines.
+    This program replaces "~/.ssh/authorized_keys" in remote machines
+    specified by "SSH,..." with "FILE". If "-a" is specified the keys
+    in FILE are appended, keeping those already installed.
     
-    View also: ssh-h-list(1)
+    See also: ssh-h-list
 
 ssh-h-check
 
-    Usage: ssh-h-check -l | SSH,... CHECKS...
+    Usage: ssh-h-check {-l | SSH,... CHECKS...}
     
-    Define checks writting "check__NAME" scripts and execute in
-    remote machines.
+    This program copies scripts named "check__<NAME>" to the remote
+    machines in "SSH,..." and executes them one after the other to
+    perform various checks.
+    
+    You can list installed checks with "-l".
+    
+    See also: ssh-h-list
 
 ssh-h-config
 
-    Usage: ssh-h-config OPTS... SSH,...
+    Usage: ssh-h-config [OPS...] SSH,...
+    
+    This program helps editing the server's "/etc/ssh/sshd_config" file
+    (In windows C:/ProgramData/ssh/sshd_config) in bulk.
     
       -gC1 : Get configuration file pathname.
       -gC2 : Print configuration file.
       -dP  : Disable password login.
       -r   : Restart SSHD service.
     
-    Configure the SSH servers in machines.
+    Supported platforms: Linux, OpenBSD, Busybox Windows.
+    See also: ssh-h-list
 
-ssh-h-copy-keys
+ssh-h-copy-to-tmp
 
-    Usage: ssh-h-copy-keys [-s ID_RSA -p ID_RSA.pub] SSH,...
+    Usage: ssh-h-copy-to-tmp SSH[,...] FILES... DIRECTORIES...
     
-    Set secret and public keys of other machines so that they
-    can connect to other machines.
-
-ssh-h-copy-tmp
-
-    Usage: ssh-h-copy-tmp SSH[,...] FILES...
+    This program copies the FILES... to remote machine's temporal
+    directory defined as "${DDIR:-${TEMP:-/tmp}}" using scp(1). 
     
-    Copy files to temporary directory or DDIR in remote windows
-    machines.
-    
-    View also: ssh-h-list(1)
+    See also: ssh-h-list
 
 ssh-h-gitconfig
 
@@ -53,31 +57,57 @@ ssh-h-gitconfig
     This program installs the "FILE.sh" in the remote machine's
     home directory "~/.gitconfig.sh" (when -u given) and then it
     executes it to update "~/.gitconfig".
+    
+    See also: ssh-h-list
 
 ssh-h-history
 
-    Usage: ssh-h-history -V -d SSH,...
+    Usage: ssh-h-history {-V , [-d] SSH,... }
     
-    Print last commands on each machine, or download and clean (-d).
+    This program prints the last commands executed on each machine.
+    
+    If "-d" is given, instead of printing those commands, these are
+    saved in local ~/.ssh-h-history/ by machine name and then removed
+    in remote.
+    
+    Environment variables: SSH_H_HISTORY_DIRECTORY
+    See also: ssh-h-list
 
 ssh-h-list
 
-    Usage: ssh-h-list l|HOST
+    Usage: ssh-h-list l|HOST,...
     
-    You can put a script in SSH_H_LIST ~/.ssh/groups /etc/ssh/groups that takes
-    an argument and returns an SSH host list.
+    This program helps organizing SSH machines in groups. You can have
+    groups as: win8, rack1, runners etc.
+    
+    For defining groups write a shell script in "$SSH_H_LIST", "~/.ssh/groups"
+    or "/etc/ssh/groups". The script should take a group name and print
+    the machine names. When "l" given the script should list the groups
+    and optionally machines.
+    
+    Scripts that source ssh-h-list get ssh(1) aliased with the following
+    options: -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2
 
 ssh-h-passwd
 
     Usage: ssh-h-passwd [-c FILE] SSH,...
     
-    Print all users that can log to a system in the specified
-    SSH machines. If the -c option is specified, change the
-    password of the users and append to the specified file.
+    This program prints all users that can log to in the specified SSH
+    machines.
+    
+    When -c given all the passwords are replaced with a random one, and
+    it is saved in FILE for consultation.
+    
+    Supported platforms: GNU/Linux MS/Windows
+    See also: ssh-h-list
 
 ssh-h-ping
 
-    Usage: ssh-h-ping SSH,... : Login in remote machines.
+    Usage: ssh-h-ping SSH,...
+    
+    Login in remote machines and print `uname -s`.
+    
+    See also: ssh-h-list
 
 ssh-h-power
 
@@ -85,48 +115,40 @@ ssh-h-power
     
     Power off (off) or restart (restart) remote machines running
     Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
+    
+    See also: ssh-h-list
 
 ssh-h-run
 
     Usage: ssh-h-run SSH,... COMMAND
     
     Execute the same command in multiple machines.
+    
+    See also: ssh-h-list
 
 ssh-h-send
 
     Usage: ssh-h-send SSH,...:DIRECTORY FILES...
     
     Send files to a remote directory using `tar(1)` and `ssh(1)`.
+    
+    See also: ssh-h-list
 
 ssh-h-setenv
 
     Usage: ssh-h-setenv SSH,... KEY[=VALUE] ...
     
-    Get/set environment variables.
+    Get/set environment variables with setx (windows) and /etc/environment UNIX.
+    
+    See also: ssh-h-list 
 
 ssh-h-speed
 
     Usage: ssh-h-speed SSH,...
     
     Tell the upload and download speed over SSH (requires GNU dd).
-
-ssh-h-windows
-
-    Usage: ssh-h-windows -OPS SSH-MACHINE
     
-    Configure a MS Windows machine with a busybox shell.
-    
-      -u 32|64 : Upload busybox (step1).
-      -p       : Enable public key auth (step2).
-      -c       : Link to "sh.exe" and "vi.exe".
-
-ssh-h-wireshark
-
-    Usage: ssh-h-wireshark [-f FILTER] SSH INTF
-    
-    Examples:
-    $ ssh-h-wireshark -f 'ip.src != 192.168.1.0/24' obsd1 bse0
-    (tcp.port == 443)
+    See also: ssh-h-list
 
 ## Collaborating
 

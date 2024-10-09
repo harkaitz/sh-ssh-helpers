@@ -1,6 +1,10 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-ping SSH,... : Login in remote machines.
+#h: Usage: ssh-h-ping SSH,...
+#h:
+#h: Login in remote machines and print `uname -s`.
+#h:
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_ping() {
@@ -12,7 +16,8 @@ ssh_h_ping() {
         fi
     done
 }
-if test @"$(basename "$0")" = @"ssh-h-ping"; then
+## -------------------------------------------------------------------
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-ping"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
         *)            ssh_h_ping "$@"; exit 0;;

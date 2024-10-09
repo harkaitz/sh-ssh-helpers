@@ -2,9 +2,14 @@
 ##:
 #h: Usage: ssh-h-passwd [-c FILE] SSH,...
 #h:
-#h: Print all users that can log to a system in the specified
-#h: SSH machines. If the -c option is specified, change the
-#h: password of the users and append to the specified file.
+#h: This program prints all users that can log to in the specified SSH
+#h: machines.
+#h:
+#h: When -c given all the passwords are replaced with a random one, and
+#h: it is saved in FILE for consultation.
+#h:
+#h: Supported platforms: GNU/Linux MS/Windows
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_passwd() {
@@ -81,7 +86,7 @@ ssh_h_passwd_change_password() {
     esac
 }
 ## -------------------------------------------------------------------
-if test @"$(basename "$0")" = @"ssh-h-passwd";then
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-passwd"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
         *)            ssh_h_passwd "$@"; exit 0;;

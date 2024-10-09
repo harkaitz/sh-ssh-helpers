@@ -3,6 +3,8 @@
 #h: Usage: ssh-h-send SSH,...:DIRECTORY FILES...
 #h:
 #h: Send files to a remote directory using `tar(1)` and `ssh(1)`.
+#h:
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_send() {
@@ -49,7 +51,7 @@ ssh_h_send() {
     done
 }
 ## -------------------------------------------------------------------
-if test @"$(basename "$0")" = @"ssh-h-send";then
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-send"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
         *)            ssh_h_send "$@"; exit 0;;

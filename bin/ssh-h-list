@@ -1,9 +1,17 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-list l|HOST
+#h: Usage: ssh-h-list l|HOST,...
 #h:
-#h: You can put a script in SSH_H_LIST ~/.ssh/groups /etc/ssh/groups that takes
-#h: an argument and returns an SSH host list.
+#h: This program helps organizing SSH machines in groups. You can have
+#h: groups as: win8, rack1, runners etc.
+#h:
+#h: For defining groups write a shell script in "$SSH_H_LIST", "~/.ssh/groups"
+#h: or "/etc/ssh/groups". The script should take a group name and print
+#h: the machine names. When "l" given the script should list the groups
+#h: and optionally machines.
+#h:
+#h: Scripts that source ssh-h-list get ssh(1) aliased with the following
+#h: options: -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2
 ##:
 ssh_h_list() {
     local f a r
@@ -25,6 +33,7 @@ ssh_h_list() {
         fi
     done
 }
+## -------------------------------------------------------------------
 ssh() {
     if env ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2 "$@"; then
         return 0
@@ -32,9 +41,10 @@ ssh() {
         return 1
     fi
 }
-if test @"$(basename "$0")" = @"ssh-h-list";then
+## -------------------------------------------------------------------
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-list"; then
     case "${1}" in
         -h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
-        *)         ssh_h_list "$@"; return 0         ;;
+        *)         ssh_h_list "$@"; exit 0           ;;
     esac
 fi

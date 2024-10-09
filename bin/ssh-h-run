@@ -3,6 +3,8 @@
 #h: Usage: ssh-h-run SSH,... COMMAND
 #h:
 #h: Execute the same command in multiple machines.
+#h:
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_run() {
@@ -17,6 +19,7 @@ ssh_h_run() {
         ssh "$ssh" "$*" || true
     done
 }
+## -------------------------------------------------------------------
 if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-run"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;

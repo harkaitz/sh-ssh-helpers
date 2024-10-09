@@ -1,12 +1,19 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-history -V -d SSH,...
+#h: Usage: ssh-h-history {-V , [-d] SSH,... }
 #h:
-#h: Print last commands on each machine, or download and clean (-d).
+#h: This program prints the last commands executed on each machine.
+#h:
+#h: If "-d" is given, instead of printing those commands, these are
+#h: saved in local ~/.ssh-h-history/ by machine name and then removed
+#h: in remote.
+#h:
+#h: Environment variables: SSH_H_HISTORY_DIRECTORY
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_history() {
-    local OPTIND optopt ssh opt_d= tmp="$(mktemp)"
+    local OPTIND optopt ssh opt_d= tmp="${HOME}/.ssh-h-history.tmp"
 
     ## Parse command line arguments.
     while getopts "d" optopt; do
@@ -21,16 +28,16 @@ ssh_h_history() {
     for ssh in $(ssh_h_list "$@"); do
         echo "== ${ssh}"
         ssh -T "${ssh}" '
-        for f in ~/.history ~/.ash_history ~/.bash_history; do
-            if test -f "$f"; then
-                cat "$f"
-            fi
-        done' > "${tmp}"
+            for f in ~/.history ~/.ash_history ~/.bash_history; do
+                if test -f "$f"; then
+                    cat "$f"
+                fi
+            done' > "${tmp}"
         if test -n "${opt_d}"; then
             mkdir -p "${SSH_H_HISTORY_DIRECTORY}"
             cat "${tmp}" >> "${SSH_H_HISTORY_DIRECTORY}/${ssh}"
             ssh -T "${ssh}" '
-            rm -f ~/.history ~/.ash_history ~/.bash_history
+                rm -f ~/.history ~/.ash_history ~/.bash_history
             '
         else
             tail -n 10 "${tmp}"
@@ -41,17 +48,12 @@ ssh_h_history() {
     ## Cleanup.
     rm -f "${tmp}"
 }
-ssh_h_history_show_variables() {
-    echo "SSH_H_HISTORY_DIRECTORY : ${SSH_H_HISTORY_DIRECTORY}"
-}
-ssh_h_history_calc_variables() {
-    SSH_H_HISTORY_DIRECTORY="${SSH_H_HISTORY_DIRECTORY:-${HOME}/.ssh-h-history}"
-}
 ## -------------------------------------------------------------------
-ssh_h_history_calc_variables
-if test @"$(basename "$0")" = @"ssh-h-history";then
+SSH_H_HISTORY_DIRECTORY="${SSH_H_HISTORY_DIRECTORY:-${HOME}/.ssh-h-history}"
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-history"; then
     case "${1}" in
         -h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        -*V*)      echo "SSH_H_HISTORY_DIRECTORY : ${SSH_H_HISTORY_DIRECTORY}";;
         *)         ssh_h_history "$@"; exit 0;;
     esac
 fi

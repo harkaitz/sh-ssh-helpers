@@ -1,14 +1,14 @@
 #!/bin/sh -e
 ##:
-#h: Usage: ssh-h-copy-tmp SSH[,...] FILES...
+#h: Usage: ssh-h-copy-to-tmp SSH[,...] FILES... DIRECTORIES...
 #h:
-#h: Copy files to temporary directory or DDIR in remote windows
-#h: machines.
+#h: This program copies the FILES... to remote machine's temporal
+#h: directory defined as "${DDIR:-${TEMP:-/tmp}}" using scp(1). 
 #h:
-#h: View also: ssh-h-list(1)
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
-ssh_h_copy_tmp() {
+ssh_h_copy_to_tmp() {
     local sshl="$1" ret="0" ssh dir file base cmd lst
     shift
     for ssh in $(ssh_h_list "${sshl}"); do
@@ -32,9 +32,9 @@ ssh_h_copy_tmp() {
     done
     return "${ret}"
 }
-if test @"$(basename "$0")" = @"ssh-h-copy-tmp";then
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-copy-to-tmp"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
-        *)            ssh_h_copy_tmp "$@"; exit 0;;
+        *)            ssh_h_copy_to_tmp "$@"; exit 0;;
     esac
 fi

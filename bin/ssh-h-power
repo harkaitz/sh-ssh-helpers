@@ -4,6 +4,8 @@
 #h:
 #h: Power off (off) or restart (restart) remote machines running
 #h: Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
+#h:
+#h: See also: ssh-h-list
 ##:
 . ssh-h-list
 ssh_h_power() {
@@ -47,7 +49,7 @@ ssh_h_power_restart() {
 }
 
 ## -------------------------------------------------------------------
-if test @"$(basename "$0")" = @"ssh-h-power";then
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-power"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
         *)            ssh_h_power "$@"; exit 0;;

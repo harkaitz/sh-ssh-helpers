@@ -2,7 +2,9 @@
 ##:
 #h: Usage: ssh-h-setenv SSH,... KEY[=VALUE] ...
 #h:
-#h: Get/set environment variables.
+#h: Get/set environment variables with setx (windows) and /etc/environment UNIX.
+#h:
+#h: See also: ssh-h-list 
 ##:
 . ssh-h-list
 ssh_h_setenv() {
@@ -37,7 +39,7 @@ ssh_h_setenv_set() {
     ' </dev/null
 }
 ## -------------------------------------------------------------------
-if test @"$(basename "$0")" = @"ssh-h-setenv";then
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-setenv"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
         *)            ssh_h_setenv "$@"; exit 0;;
