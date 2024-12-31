@@ -8,7 +8,9 @@
 #h:   -gC1 : Get configuration file pathname.
 #h:   -gC2 : Print configuration file.
 #h:   -dP  : Disable password login.
-#h:   -r   : Restart SSHD service.
+#h:   -eF  : Enable forwarding.
+#h:   -eR  : Enable root.
+#h:   -r   : Reload SSHD service.
 #h:
 #h: Supported platforms: Linux, OpenBSD, Busybox Windows.
 #h: See also: ssh-h-list
@@ -18,7 +20,7 @@ ssh_h_config() {
     local OPTIND optopt ssh ops=
     
     ## Parse command line arguments.
-    while getopts "gdCP12r" optopt; do
+    while getopts "gdCP12reFR" optopt; do
         ops="${ops}${optopt}"
         case $optopt in
             \?) return 1;;
@@ -30,7 +32,9 @@ ssh_h_config() {
     for ssh in $(ssh_h_list "$@"); do
         case "${ops}" in *gC1*) ssh_h_config_file_path        "${ssh}" ;; esac
         case "${ops}" in *gC2*) ssh_h_config_file_content     "${ssh}" ;; esac
-        case "${ops}" in *dP*)  ssh_h_config_disable_password "${ssh}" ;; esac
+        case "${ops}" in *d*P*) ssh_h_config_disable_password "${ssh}" ;; esac
+        case "${ops}" in *e*F*) ssh_h_config_enable_forwarding "${ssh}" ;; esac
+        case "${ops}" in *e*R*) ssh_h_config_enable_root      "${ssh}" ;; esac
         case "${ops}" in *r*)   ssh_h_config_restart          "${ssh}" ;; esac
     done
 }
@@ -46,13 +50,23 @@ ssh_h_config_disable_password() {
     echo "Disabling SSH password login in ${1} ..."
     ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
 }
+ssh_h_config_enable_forwarding() {
+    local sed='s|^\#*AllowTcpForwarding .*|AllowTcpForwarding yes|'
+    echo "Disabling SSH password login in ${1} ..."
+    ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
+}
+ssh_h_config_enable_root() {
+    local sed='s|^\#*PermitRootLogin .*|PermitRootLogin yes|'
+    echo "Disabling SSH password login in ${1} ..."
+    ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
+}
 ssh_h_config_restart() {
     echo "Restarting SSH service in ${1} ..."
-    ssh -T "$1" '
+    ssh -T "$1" "${SSH_H_GET_F}"'
         if test @"$(uname -s)" = @"Windows_NT"; then
             sc stop sshd; sc start sshd
         elif test @"$(uname -s)" = @"Linux" && test -e /lib/systemd/system/ssh.service; then
-            sudo systemctl restart sshd
+            sudo systemctl reload sshd
         else
             echo >&2 "error: Unknown platform."
             exit 1

@@ -2,7 +2,8 @@
 ##:
 #h: Usage: ssh-h-setenv SSH,... KEY[=VALUE] ...
 #h:
-#h: Get/set environment variables with setx (windows) and /etc/environment UNIX.
+#h: Get/set environment variables with setx (windows) and /etc/environment
+#h: (in UNIX wgen available) or "/etc/profile.d/env_VAR.sh".
 #h:
 #h: See also: ssh-h-list 
 ##:
@@ -30,11 +31,17 @@ ssh_h_setenv_set() {
     ssh -T "$1" "
     k='$2' v='$3'
     "'
-    if test @"$(uname -o)" = @"MS/Windows"; then
+    if test @"$(uname -s)" = @"Windows_NT"; then
         setx "$k" "$v" >/dev/null
-    else
+    elif test -f /etc/environment; then
         sudo sed -i "/$k=/d" /etc/environment
-        echo $k=\"$v\" | sudo tee -a /etc/environment >/dev/null
+        sudo tee -a /etc/environment >/dev/null <<-EOF
+	$k=$v
+	EOF
+    elif test -d /etc/profile.d; then
+        sudo tee /etc/profile.d/env_$k.sh >/dev/null <<-EOF
+	export $k=$v
+	EOF
     fi
     ' </dev/null
 }

@@ -36,7 +36,9 @@ ssh-h-config
       -gC1 : Get configuration file pathname.
       -gC2 : Print configuration file.
       -dP  : Disable password login.
-      -r   : Restart SSHD service.
+      -eF  : Enable forwarding.
+      -eR  : Enable root.
+      -r   : Reload SSHD service.
     
     Supported platforms: Linux, OpenBSD, Busybox Windows.
     See also: ssh-h-list
@@ -138,7 +140,8 @@ ssh-h-setenv
 
     Usage: ssh-h-setenv SSH,... KEY[=VALUE] ...
     
-    Get/set environment variables with setx (windows) and /etc/environment UNIX.
+    Get/set environment variables with setx (windows) and /etc/environment
+    (in UNIX wgen available) or "/etc/profile.d/env_VAR.sh".
     
     See also: ssh-h-list 
 
