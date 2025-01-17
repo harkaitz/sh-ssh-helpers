@@ -19,14 +19,11 @@ install-sh:
 	cp bin/ssh-h-power $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-authorized-keys $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-run $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-passwd $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-send $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-config $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-copy-to-tmp $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-list $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-gitconfig $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-ping $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-check $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-speed $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-setenv $(DESTDIR)$(PREFIX)/bin
 ## -- BLOCK:sh --

@@ -14,18 +14,6 @@ ssh-h-authorized-keys
     
     See also: ssh-h-list
 
-ssh-h-check
-
-    Usage: ssh-h-check {-l | SSH,... CHECKS...}
-    
-    This program copies scripts named "check__<NAME>" to the remote
-    machines in "SSH,..." and executes them one after the other to
-    perform various checks.
-    
-    You can list installed checks with "-l".
-    
-    See also: ssh-h-list
-
 ssh-h-config
 
     Usage: ssh-h-config [OPS...] SSH,...
@@ -49,16 +37,6 @@ ssh-h-copy-to-tmp
     
     This program copies the FILES... to remote machine's temporal
     directory defined as "${DDIR:-${TEMP:-/tmp}}" using scp(1). 
-    
-    See also: ssh-h-list
-
-ssh-h-gitconfig
-
-    Usage: ssh-h-gitconfig [-u FILE.sh] SSH,...
-    
-    This program installs the "FILE.sh" in the remote machine's
-    home directory "~/.gitconfig.sh" (when -u given) and then it
-    executes it to update "~/.gitconfig".
     
     See also: ssh-h-list
 
@@ -89,19 +67,6 @@ ssh-h-list
     
     Scripts that source ssh-h-list get ssh(1) aliased with the following
     options: -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2
-
-ssh-h-passwd
-
-    Usage: ssh-h-passwd [-c FILE] SSH,...
-    
-    This program prints all users that can log to in the specified SSH
-    machines.
-    
-    When -c given all the passwords are replaced with a random one, and
-    it is saved in FILE for consultation.
-    
-    Supported platforms: GNU/Linux MS/Windows
-    See also: ssh-h-list
 
 ssh-h-ping
 
@@ -155,7 +120,7 @@ ssh-h-speed
 
 ## Collaborating
 
-For making bug reports, feature requests and donations visit
+For making bug reports, feature requests, support or consulting visit
 one of the following links:
 
 1. [gemini://harkadev.com/oss/](gemini://harkadev.com/oss/)
