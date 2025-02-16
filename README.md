@@ -25,6 +25,7 @@ ssh-h-config
       -gC2 : Print configuration file.
       -dP  : Disable password login.
       -eF  : Enable forwarding.
+      -eX  : Enable X11 forwarding.
       -eR  : Enable root.
       -r   : Reload SSHD service.
     

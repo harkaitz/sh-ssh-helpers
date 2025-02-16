@@ -9,6 +9,7 @@
 #h:   -gC2 : Print configuration file.
 #h:   -dP  : Disable password login.
 #h:   -eF  : Enable forwarding.
+#h:   -eX  : Enable X11 forwarding.
 #h:   -eR  : Enable root.
 #h:   -r   : Reload SSHD service.
 #h:
@@ -17,10 +18,10 @@
 ##:
 . ssh-h-list
 ssh_h_config() {
-    local OPTIND optopt ssh ops=
+    local OPTIND=1 optopt ssh ops=
     
     ## Parse command line arguments.
-    while getopts "gdCP12reFR" optopt; do
+    while getopts "gdCP12reFRX" optopt; do
         ops="${ops}${optopt}"
         case $optopt in
             \?) return 1;;
@@ -32,9 +33,10 @@ ssh_h_config() {
     for ssh in $(ssh_h_list "$@"); do
         case "${ops}" in *gC1*) ssh_h_config_file_path        "${ssh}" ;; esac
         case "${ops}" in *gC2*) ssh_h_config_file_content     "${ssh}" ;; esac
-        case "${ops}" in *d*P*) ssh_h_config_disable_password "${ssh}" ;; esac
-        case "${ops}" in *e*F*) ssh_h_config_enable_forwarding "${ssh}" ;; esac
-        case "${ops}" in *e*R*) ssh_h_config_enable_root      "${ssh}" ;; esac
+        case "${ops}" in *dP*)  ssh_h_config_disable_password "${ssh}" ;; esac
+        case "${ops}" in *eX*)  ssh_h_config_enable_x11_forwarding "${ssh}" ;; esac
+        case "${ops}" in *eF*)  ssh_h_config_enable_forwarding "${ssh}" ;; esac
+        case "${ops}" in *eR*)  ssh_h_config_enable_root      "${ssh}" ;; esac
         case "${ops}" in *r*)   ssh_h_config_restart          "${ssh}" ;; esac
     done
 }
@@ -50,14 +52,19 @@ ssh_h_config_disable_password() {
     echo "Disabling SSH password login in ${1} ..."
     ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
 }
+ssh_h_config_enable_x11_forwarding() {
+    local sed='s|^\#*X11Forwarding .*|X11Forwarding yes|'
+    echo "Allowing TCP forwading in ${1} ..."
+    ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
+}
 ssh_h_config_enable_forwarding() {
     local sed='s|^\#*AllowTcpForwarding .*|AllowTcpForwarding yes|'
-    echo "Disabling SSH password login in ${1} ..."
+    echo "Allowing TCP forwading in ${1} ..."
     ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
 }
 ssh_h_config_enable_root() {
     local sed='s|^\#*PermitRootLogin .*|PermitRootLogin yes|'
-    echo "Disabling SSH password login in ${1} ..."
+    echo "Enabling root login in ${1} ..."
     ssh -T "$1" "${SSH_H_GET_F} \${sudo} sed -i '${sed}' \"\$f\""
 }
 ssh_h_config_restart() {
@@ -67,6 +74,8 @@ ssh_h_config_restart() {
             sc stop sshd; sc start sshd
         elif test @"$(uname -s)" = @"Linux" && test -e /lib/systemd/system/ssh.service; then
             sudo systemctl reload sshd
+        elif which sv >/dev/null 2>&1; then
+            sudo sv reload sshd
         else
             echo >&2 "error: Unknown platform."
             exit 1
