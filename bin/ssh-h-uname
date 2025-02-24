@@ -1,0 +1,52 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-uname OPTS... SSH,...
+#h:
+#h: Get information from uname(1) and os-release(5).
+#h:
+#h:   -m  Get machine platform.
+#h:   -s  Get kernel name.
+#h:   -d  Get distro name if os-release is available, otherwide kernel.
+#h:
+#h: Environment variables: SSH_H_LIST
+##:
+ssh_h_uname() {
+    local OPTIND=1 optopt ssh cmd= ops=
+    
+    # Parse command line arguments.
+    while getopts "msd" optopt; do
+        ops="${ops}${optopt}"
+        case $optopt in
+            \?) return 1;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    
+    # Forge cmd.
+    case "${ops}" in *m*|'') cmd="${cmd}uname -m;" ;; esac
+    case "${ops}" in *s*|'') cmd="${cmd}uname -s;" ;; esac
+    case "${ops}" in *d*|'') cmd="${cmd}ID=\"\$(uname -s)\"; if test -f /etc/os-release; then . /etc/os-release; fi; echo \"\$ID\";";; esac
+    cmd="set -e; { ${cmd} } | tr '\\n' ' ' | sed 's| *$||'; echo"
+    
+    # At least one machine.
+    if test ! -n "${1}"; then
+        echo >&2 "error: Please specify a machine."
+        return 1
+    fi
+    
+    # For each machine.
+    for ssh in $(${SSH_H_LIST:-echo} "$1" | tr ',' ' '); do
+        ssh -o PasswordAuthentication=no \
+        -o BatchMode=yes             \
+        -o ConnectTimeout=2          \
+        "${ssh}" \
+        "${cmd}"
+    done
+}
+# --------------------------------------------------------------------
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-uname"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_uname "$@"; exit 0;;
+    esac
+fi

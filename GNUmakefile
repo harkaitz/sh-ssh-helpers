@@ -16,11 +16,12 @@ install: install-sh
 install-sh:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-history $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-config $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-power $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-authorized-keys $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-run $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-send $(DESTDIR)$(PREFIX)/bin
-	cp bin/ssh-h-config $(DESTDIR)$(PREFIX)/bin
+	cp bin/ssh-h-uname $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-copy-to-tmp $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-list $(DESTDIR)$(PREFIX)/bin
 	cp bin/ssh-h-ping $(DESTDIR)$(PREFIX)/bin

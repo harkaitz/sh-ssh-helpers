@@ -119,6 +119,18 @@ ssh-h-speed
     
     See also: ssh-h-list
 
+ssh-h-uname
+
+    Usage: ssh-h-uname OPTS... SSH,...
+    
+    Get information from uname(1) and os-release(5).
+    
+      -m  Get machine platform.
+      -s  Get kernel name.
+      -d  Get distro name if os-release is available, otherwide kernel.
+    
+    Environment variables: SSH_H_LIST
+
 ## Collaborating
 
 For making bug reports, feature requests, support or consulting visit
