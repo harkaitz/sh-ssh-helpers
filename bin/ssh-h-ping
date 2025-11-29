@@ -1,0 +1,27 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-ping SSH,...
+#h:
+#h: Login in remote machines and print `uname -s`.
+#h:
+#h: Environment variables: SSH_H_LIST
+##:
+. ssh-h-list
+ssh_h_ping() {
+    local m
+    for m in $(ssh_h_list "$@"); do
+        printf '%-10s : ' "${m}"
+        if ! ssh "${m}" "uname -a | sed 's| *\\#.*||'" 2>/dev/null; then
+            echo "ERROR"
+        fi
+    done
+}
+## -------------------------------------------------------------------
+if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-ping"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0" ;;
+        *)            ssh_h_ping "$@"; exit 0;;
+    esac
+fi
+
+
