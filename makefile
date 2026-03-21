@@ -1,7 +1,9 @@
 .POSIX: # POSIX Makefile, use make,gmake,pdpmake,bmake
-PROJECT=sh-ssh-helpers
-VERSION=1.0.0
-PREFIX=/usr/local
+PROJECT =sh-ssh-helpers
+VERSION =1.0.0
+PREFIX  =/usr/local
+DESTDIR =$(HOMEDRIVE)
+
 all:
 clean:
 install:
