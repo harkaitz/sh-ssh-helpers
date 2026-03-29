@@ -2,15 +2,14 @@
 ##:
 #h: Usage: ssh-h-power SSH,... [off|restart]
 #h:
-#h: Power off (off) or restart (restart) remote machines running
-#h: Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
+#h: Print the uptime, power off or restart remote machines.
 #h:
+#h: Supported remotes: Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
 #h: Environment variables: SSH_H_LIST
 ##:
-. ssh-h-list
 ssh_h_power() {
     local m
-    for m in $(ssh_h_list "$1"); do
+    for m in $(${SSH_H_LIST:-echo} "$@" | tr ',' ' '); do
         case "$2" in
             '')      printf '%-10s : ' "${m}"; ssh_h_power_status  "$m";;
             off)     printf '%-10s : ' "${m}"; ssh_h_power_off     "$m";;
@@ -21,10 +20,10 @@ ssh_h_power() {
 }
 ## -------------------------------------------------------------------
 ssh_h_power_status() {
-    ssh "$1" "uptime" || true
+    ${SSH} "$1" "uptime" || true
 }
 ssh_h_power_off() {
-    ssh "$1" '
+    ${SSH} "$1" '
     case "$(uname -s)" in
         Linux)      shutdown -h now    ;;
         OpenBSD)    shutdown -p now    ;;
@@ -36,7 +35,7 @@ ssh_h_power_off() {
     ' || true
 }
 ssh_h_power_restart() {
-    ssh "$1" '
+    ${SSH} "$1" '
     case "$(uname -s)" in
         Linux)      shutdown -h now    ;;
         OpenBSD)    shutdown -p now    ;;
@@ -49,7 +48,8 @@ ssh_h_power_restart() {
 }
 
 ## -------------------------------------------------------------------
-if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-power"; then
+: ${SSH:=ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2}
+if test @"${0##*/}" = @"ssh-h-power"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
         *)            ssh_h_power "$@"; exit 0;;

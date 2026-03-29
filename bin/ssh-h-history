@@ -2,15 +2,13 @@
 ##:
 #h: Usage: ssh-h-history {-V , [-d] SSH,... }
 #h:
-#h: This program prints the last commands executed on each machine.
+#h: Print the last commands executed on the specified machines.
 #h:
-#h: If "-d" is given, instead of printing those commands, these are
-#h: saved in local ~/.ssh-h-history/ by machine name and then removed
-#h: in remote.
+#h: With "-d" the history is appended to "~/.ssh-h-history/SSH" and
+#h: then removed in the remote.
 #h:
 #h: Environment variables: SSH_H_LIST, SSH_H_HISTORY_DIRECTORY
 ##:
-. ssh-h-list
 ssh_h_history() {
     local OPTIND optopt ssh opt_d= tmp="${HOME}/.ssh-h-history.tmp"
 
@@ -24,9 +22,9 @@ ssh_h_history() {
     shift $(( $OPTIND - 1 ))
     
     ## For each specified machine.
-    for ssh in $(ssh_h_list "$@"); do
+    for ssh in $(${SSH_H_LIST:-echo} "$@" | tr ',' ' '); do
         echo "== ${ssh}"
-        ssh -T "${ssh}" '
+        ${SSH} "${ssh}" '
             for f in ~/.history ~/.ash_history ~/.bash_history; do
                 if test -f "$f"; then
                     cat "$f"
@@ -48,11 +46,13 @@ ssh_h_history() {
     rm -f "${tmp}"
 }
 ## -------------------------------------------------------------------
-SSH_H_HISTORY_DIRECTORY="${SSH_H_HISTORY_DIRECTORY:-${HOME}/.ssh-h-history}"
-if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-history"; then
+: ${SSH:=ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2}
+: ${SSH_H_HISTORY_DIRECTORY:=${HOME}/.ssh-h-history}
+if test @"${0##*/}" = @"ssh-h-history"; then
     case "${1}" in
-        -h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
-        -*V*)      echo "SSH_H_HISTORY_DIRECTORY : ${SSH_H_HISTORY_DIRECTORY}";;
-        *)         ssh_h_history "$@"; exit 0;;
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        -*V*)         echo "SSH_H_HISTORY_DIRECTORY : ${SSH_H_HISTORY_DIRECTORY}";;
+        *)            ssh_h_history "$@";;
     esac
+    exit 0
 fi

@@ -8,7 +8,6 @@
 #h:
 #h: Environment variables: SSH_H_LIST
 ##:
-. ssh-h-list
 ssh_h_authorized_keys() {
     local OPTIND optopt opt_a= cmd= ssh= file=
 
@@ -52,13 +51,15 @@ ssh_h_authorized_keys() {
     ## For each machine.
     for ssh in $(ssh_h_list "$@"); do
         echo "== ${ssh}"
-        env ssh -T "${ssh}" sh <<-EOF
+        ${SSH} "${ssh}" sh <<-EOF
 	${cmd}
 	EOF
     done
     
 }
-if test @"${SCRNAME:-$(basename "$0")}" = @"ssh-h-authorized-keys"; then
+# --------------------------------------------------------------------
+: ${SSH:=ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2}
+if test @"${0##*/}" = @"ssh-h-authorized-keys"; then
     case "${1}" in
         ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0"  ;;
         *)            ssh_h_authorized_keys "$@"; exit 0 ;;

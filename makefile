@@ -19,13 +19,12 @@ install: install-sh
 install-sh:
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-history $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-list $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-power $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-authorized-keys $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-run $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-send $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-uname $(DESTDIR)$(PREFIX)/bin
-	install -c -m 755 bin/ssh-h-copy-to-tmp $(DESTDIR)$(PREFIX)/bin
-	install -c -m 755 bin/ssh-h-list $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-ping $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-speed $(DESTDIR)$(PREFIX)/bin
 ## -- BLOCK:sh --

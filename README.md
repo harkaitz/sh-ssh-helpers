@@ -14,24 +14,14 @@ ssh-h-authorized-keys
     
     Environment variables: SSH_H_LIST
 
-ssh-h-copy-to-tmp
-
-    Usage: ssh-h-copy-to-tmp SSH[,...] FILES... DIRECTORIES...
-    
-    This program copies the FILES... to remote machine's temporal
-    directory defined as "${DDIR:-${TEMP:-/tmp}}" using scp(1). 
-    
-    Environment variables: SSH_H_LIST
-
 ssh-h-history
 
     Usage: ssh-h-history {-V , [-d] SSH,... }
     
-    This program prints the last commands executed on each machine.
+    Print the last commands executed on the specified machines.
     
-    If "-d" is given, instead of printing those commands, these are
-    saved in local ~/.ssh-h-history/ by machine name and then removed
-    in remote.
+    With "-d" the history is appended to "~/.ssh-h-history/SSH" and
+    then removed in the remote.
     
     Environment variables: SSH_H_LIST, SSH_H_HISTORY_DIRECTORY
 
@@ -41,15 +31,15 @@ ssh-h-ping
     
     Login in remote machines and print `uname -s`.
     
-    Environment variables: SSH_H_LIST
+    Environment variables: SSH, SSH_H_LIST
 
 ssh-h-power
 
     Usage: ssh-h-power SSH,... [off|restart]
     
-    Power off (off) or restart (restart) remote machines running
-    Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
+    Print the uptime, power off or restart remote machines.
     
+    Supported remotes: Linux/OpenBSD/Windows(Busybox/Cygwin/Msys).
     Environment variables: SSH_H_LIST
 
 ssh-h-run
@@ -62,7 +52,7 @@ ssh-h-run
 
 ssh-h-send
 
-    Usage: ssh-h-send SSH,...:DIRECTORY FILES...
+    Usage: ssh-h-send SSH,...:DESTDIR FILES...
     
     Send files to a remote directory using `tar(1)` and `ssh(1)`.
     
@@ -74,7 +64,7 @@ ssh-h-speed
     
     Tell the upload and download speed over SSH (requires GNU dd).
     
-    Environment variables: SSH_H_LIST
+    Environment variables: SSH, SSH_H_LIST
 
 ssh-h-uname
 
