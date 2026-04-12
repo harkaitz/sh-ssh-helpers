@@ -7,8 +7,9 @@
 #h: Environment variables: SSH_H_LIST
 ##:
 ssh_h_run() {
-    local ssh
-    for ssh in $(${SSH_H_LIST:-echo} "$1" | tr ',' ' '); do
+    local ssh="$(${SSH_H_LIST:-echo} "$1" | tr ',' ' ')"
+    shift
+    for ssh in ${ssh}; do
         echo "== ${ssh}"
         if ${SSH} "${ssh}" "$*"; then
             true
