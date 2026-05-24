@@ -1,0 +1,97 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-dump [NAME...]
+#h:
+#h: Create backups of disks and directories in remote machines using
+#h: dump(8) and tar(1). List file:
+#h:
+#h:   NAME  SSH_MACHINE  tar|dump  SOURCE_DIR  BACKUP_DIR  [SUDO_COMMAND]
+#h:
+#h: Environment variables: SSH_H_DUMP_LST
+##:
+ssh_h_dump() {
+    local name
+    if test ! -n "${1}"; then
+        ssh_h_dump_list
+        return 0
+    fi
+    for name in "$@"; do
+        ssh_h_dump_create "${name}"
+    done   
+}
+# --------------------------------------------------------------------
+ssh_h_dump_list() {
+    local name ssh type disk backup sudo
+    while read -r name ssh type disk backup sudo; do
+        test -n "${name}" || continue
+        if ! ssh2 "${ssh}" "test -e '${disk}' && test -d '${backup}'" </dev/null; then
+            continue
+        fi
+        case "${type}" in
+            dump) printf '%-10s %-15s %s->%s/{0,1}.dump\n'      "${name}" "${ssh}${sudo:+ (${sudo})}" "${disk}" "${backup}";;
+            tar)  printf '%-10s %-15s %s->%s/b.{star,tar.gz}\n' "${name}" "${ssh}${sudo:+ (${sudo})}" "${disk}" "${backup}";;
+        esac
+    done <<-EOF
+	$(ssh_h_dump_awk '{print}')
+	EOF
+}
+ssh_h_dump_create() {
+    local name ssh type disk backup sudo 
+    
+    ssh="$(   ssh_h_dump_awk -v n="$1" 'n == $1 { print $2}')"
+    type="$(  ssh_h_dump_awk -v n="$1" 'n == $1 { print $3}')"
+    disk="$(  ssh_h_dump_awk -v n="$1" 'n == $1 { print $4}')"
+    backup="$(ssh_h_dump_awk -v n="$1" 'n == $1 { print $5}')"
+    sudo="$(  ssh_h_dump_awk -v n="$1" 'n == $1 { print $6}')"
+    if test ! -n "${ssh}"; then
+        echo "error: ${1}: Disk not found." >&2
+        return 1
+    elif test ! -n "${disk}" || test ! -n "${backup}"; then
+        echo "error: ${1}: Missing disk and backup." >&2
+        return 1
+    elif ! ssh2 "${ssh}" "test -e '${disk}' && test -d '${backup}'"; then
+        echo "error: ${1}: Disk or backup directory not found." >&2
+        return 1
+    fi
+
+    case "${type}" in
+        dump)
+            if ssh2 "${ssh}" "test ! -f ${backup}/0.dump"; then
+                ssh2 "${ssh}" "$sudo dump -au -0 -f '${backup}/0.dump' '${disk}'"
+            else
+                ssh2 "${ssh}" "$sudo dump -au -1 -f '${backup}/1.dump' '${disk}'"
+            fi
+            ;;
+        tar)
+            ssh2 "${ssh}" "$sudo tar --listed-incremental='${backup}/b.snar' -czf '${backup}/b.tar.gz' '${disk}'"
+            ;;
+        *)
+            echo "error: Invalid type." >&2
+            return 1
+            ;;
+    esac
+}
+# --------------------------------------------------------------------
+ssh_h_dump_awk() {
+    test ! -f "${SSH_H_DUMP_LST}" || awk "$@" < "${SSH_H_DUMP_LST}"
+}
+ssh2() {
+    local m="$1" c
+    shift
+    if test @"${m}" = @"localhost" || test @"${m}" = @"$(uname -n)"; then
+        sh -ec "$*"
+    else
+        ssh -T -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2 "${m}" "$*"
+    fi
+}
+# --------------------------------------------------------------------
+: ${SSH_H_DUMP_LST:=$(dirname "$0")/../etc/ssh-h-dump.lst}
+if test @"${0##*/}" = @"ssh-h-dump"; then
+    export MSYS_NO_PATHCONV=1
+    case "${1}" in
+        -h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        -V)        echo "SSH_H_DUMP_LST : ${SSH_H_DUMP_LST}";;
+        *)         ssh_h_dump "$@";;
+    esac
+    exit 0
+fi

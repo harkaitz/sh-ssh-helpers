@@ -1,0 +1,21 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-timesync SSH,...
+#h:
+#h: Synchronize time in remote machines.
+##:
+ssh_h_timesync() {
+    local ssh
+    for ssh in $(${SSH_H_LIST:-echo} "${1}" | tr ',' '\n'); do
+        echo "== Synchronizing ${ssh} ..."
+        ssh "${ssh}" "date @$(date '+%s')"
+    done
+}
+# --------------------------------------------------------------------
+if test @"${0##*/}" = @"ssh-h-timesync"; then
+    export MSYS_NO_PATHCONV=1
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_timesync "$@"; exit 0;;
+    esac
+fi

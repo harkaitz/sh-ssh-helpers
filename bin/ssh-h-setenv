@@ -1,0 +1,75 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-setenv SSH,... KEY[=VALUE] ...
+#h:
+#h: Get/set environment variables with "setx" (windows) and /etc/environment
+#h: (in UNIX when available) or "/etc/profile.d/env_VAR.sh".
+#h:
+#h: Environment variables: SSH_H_LIST
+##:
+ssh_h_setenv() {
+    local sshl="$1" ssh kv key val
+    shift
+    for ssh in $(${SSH_H_LIST:-echo} "${sshl}" | tr ',' ' '); do
+        echo "== ${ssh}"
+        for kv in "$@"; do
+            case "${kv}" in
+                *=*)
+                    key="${kv%%=*}"
+                    val="${kv#*=}"
+                    ssh_h_setenv_set "${ssh}" "${key}" "${val}"
+                    ssh_h_setenv_get "${ssh}" "${key}"
+                    ;;
+                *)
+                    ssh_h_setenv_get "${ssh}" "${kv}"
+                    ;;
+            esac
+        done
+    done
+}
+## -------------------------------------------------------------------
+ssh_h_setenv_get() {
+    ${SSH} "$1" "
+        echo \"${2}=\$${2}\"
+    "
+}
+ssh_h_setenv_set() {
+    ${SSH} "$1" "
+        set -e
+        k='$2' v='$3' sudo=''
+        "'
+        if test @"$(uname -s)" = @"Windows_NT"; then
+            setx "$k" "$v" >/dev/null
+            exit 0
+        fi
+
+        for i in "env" "doas -n" "sudo -n"; do
+            if $i test -w "/bin/sh" 2>/dev/null; then
+                sudo="$i"
+                break
+            fi
+        done
+        
+        if $sudo test -f /etc/environment; then
+            $sudo sed -i "/$k=/d" /etc/environment
+            $sudo tee -a /etc/environment >/dev/null <<-EOF
+		$k=$v
+		EOF
+        elif $sudo test -d /etc/profile.d; then
+            $sudo tee /etc/profile.d/env_$k.sh >/dev/null <<-EOF
+		export $k="$v"
+		EOF
+        else
+            echo "error: Unsupported platform." >&2
+            exit 1
+        fi
+    '
+}
+## -------------------------------------------------------------------
+: ${SSH:=env ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2}
+if test @"${0##*/}" = @"ssh-h-setenv"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_setenv "$@"; exit 0;;
+    esac
+fi

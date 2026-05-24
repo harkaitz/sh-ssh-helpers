@@ -1,0 +1,63 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-cert-check { -V | SSH,... }
+#h:
+#h: This program makes the server connect by https to a list of
+#h: hosts in $SSH_H_CERT_SITES.
+#h:
+#h: Required tools: curl/wget
+#h: Environment variables: SSH, SSH_H_LIST, SSH_H_CERT_SITES
+##:
+ssh_h_cert_check() {
+    local sshl site ssh
+    
+    # List machines.
+    sshl="$(${SSH_H_LIST:-echo} "$*" | tr ',' ' ')"
+    test -n "${sshl}"
+    
+    # For each argument.
+    for ssh in ${sshl}; do
+        ssh_vc "${ssh}" "ssh='${ssh}' sites='${SSH_H_CERT_SITES}'" '
+            for site in ${sites}; do
+                echo "== ${ssh} : ${site}" >&2
+                if which curl >/dev/null 2>&1 && curl -sS "https://${site#https://}" >/dev/null; then
+                    echo SUCCESS >&2
+                elif which wget >/dev/null 2>&1 && wget -O /dev/null "https://${site#https://}"; then
+                    echo SUCCESS >&2
+                else
+                    echo FAILURE >&2
+                fi
+            done
+        '
+    done
+    
+}
+ssh_h_cert_check_show_variables() {
+    cat <<-EOF
+	SSH              : ${SSH}
+	SSH_H_LIST       : ${SSH_H_LIST:-echo}
+	SSH_H_CERT_SITES : ${SSH_H_CERT_SITES}
+	EOF
+}
+ssh_h_cert_check_calc_variables() {
+    : ${SSH:=ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2}
+    : ${SSH_H_CERT_SITES:=www.google.com}
+}
+# --------------------------------------------------------------------
+ssh_vc() {
+    case "$1" in
+        localhost) eval "${2:-true};${3:-true}";;
+        *)         ${SSH:-ssh} "$1" "${2:-true};${3:-true}";;
+    esac
+}
+# --------------------------------------------------------------------
+ssh_h_cert_check_calc_variables
+if test @"${0##*/}" = @"ssh-h-cert-check"; then
+    export MSYS_NO_PATHCONV=1
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        -V)           ssh_h_cert_check_show_variables;;
+        *)            ssh_h_cert_check "$@";;
+    esac
+    exit 0
+fi

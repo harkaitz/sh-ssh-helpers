@@ -23,8 +23,16 @@ install-sh:
 	install -c -m 755 bin/ssh-h-power $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-authorized-keys $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-run $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-passwd $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-send $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-uname $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-cert-install $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-cert-check $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-dump $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-nslookup $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-timesync $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-ping $(DESTDIR)$(PREFIX)/bin
 	install -c -m 755 bin/ssh-h-speed $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-setenv $(DESTDIR)$(PREFIX)/bin
+	install -c -m 755 bin/ssh-h-wireshark $(DESTDIR)$(PREFIX)/bin
 ## -- BLOCK:sh --

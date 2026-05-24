@@ -1,0 +1,27 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-nslookup SSH1,... [DOMAIN (default google.com)]
+#h:
+#h: Print the DNS server user to resolve DOMAIN in remote machines.
+##:
+ssh_h_nslookup() {
+    local ssh domain="${2:-google.com}"
+    for ssh in $(${SSH_H_LIST:-echo} "$1" | tr ',' ' '); do
+        ssh -o PasswordAuthentication=no -o BatchMode=yes "${ssh}" "
+            ssh='${ssh}' domain='${domain}'
+            "'
+            case "$(uname -s)" in
+                Linux|*BSD) nslookup "${domain}" | sed -n "s|^Server:[ 	]*|${ssh}: |p"         ;;
+                Windows_NT) nslookup "${domain}" 2>/dev/null | sed -n "s|Address: *|${ssh}: |p" ;;
+                *)          echo "ssh-h-nslookup: error: Unsupported platform." >&2; exit 1;;
+            esac
+        '
+    done
+}
+# --------------------------------------------------------------------
+if test @"${0##*/}" = @"ssh-h-nslookup"; then
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        *)            ssh_h_nslookup "$@"; exit 0;;
+    esac
+fi

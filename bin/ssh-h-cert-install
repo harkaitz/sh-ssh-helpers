@@ -1,0 +1,95 @@
+#!/bin/sh -e
+##:
+#h: Usage: ssh-h-cert-install CERTIFICATE SSH,...
+#h:
+#h: Install certificates in remote or local machines so that browsers
+#h: and curl(1)/wget(1) use it.
+#h:
+#h: Supported: Linux (update-ca-certificates), Windows (certutil)
+#h: Environment variables: SSH, SSH_H_LIST
+##:
+ssh_h_cert_install() {
+    local cert="$1" sshl="$2" ssh
+
+    # Check command line arguments.
+    if test ! -n "${cert}"; then
+        echo >&2 "error: Please specify a certificate file."
+        return 1
+    elif test ! -f "${cert}"; then
+        echo >&2 "error: ${cert}: File not found."
+        return 1
+    elif test ! -n "${sshl}"; then
+        echo >&2 "error: Please specify a machine to install in."
+        return 1
+    else
+        shift
+    fi
+
+    # List machines.
+    sshl="$(${SSH_H_LIST:-echo} "$*" | tr ',' ' ')"
+    test -n "${sshl}"
+
+    # For each argument.
+    for ssh in ${sshl}; do
+        ssh_vc "${ssh}" "n=$(basename "${cert}" .crt)" '
+            case "$(uname -s)" in
+                Linux)
+                    if test -d /usr/local/share/ca-certificates; then
+                        echo "== Adding /usr/local/share/ca-certificates/${n}.crt ... "
+                        sudo -n tee /usr/local/share/ca-certificates/${n}.crt >/dev/null
+                        echo "== Running update-ca-certificates ..."
+                        sudo -n update-ca-certificates
+                    else
+                        echo "error: Unknown Linux system, install certificate manually." >&2
+                        exit 1
+                    fi
+                    ;;
+                Windows_NT)
+                    echo "== Fetching certificate ..."
+                    c="${TEMP:-/tmp}/${n}.crt"
+                    tee "${c}" >/dev/null
+                    echo "== Installing certificate ..."
+                    case "$(whoami)" in
+                        root) certutil -addstore "Root" "${c}" ;;
+                        *)    if test -n "${SSH_CLIENT}"; then
+                                  echo "error: Log in as administrator."
+                                  exit 1
+                              fi
+                              elevate certutil -addstore "Root" "${c}" ;;
+                    esac
+                    ;;
+                *)
+                    echo "error: Unknown System, install certificate manually." >&2
+                    exit 1
+                    ;;
+            esac
+        ' < "${cert}"
+    done
+}
+ssh_h_cert_install_show_variables() {
+    cat <<-EOF
+	SSH        : ${SSH}
+	SSH_H_LIST : ${SSH_H_LIST:-echo}
+	EOF
+}
+ssh_h_cert_install_calc_variables() {
+    : ${SSH:=ssh -o PasswordAuthentication=no -o BatchMode=yes -o ConnectTimeout=2}
+}
+# --------------------------------------------------------------------
+ssh_vc() {
+    case "$1" in
+        localhost) eval "${2:-true};${3:-true}";;
+        *)         ${SSH} "$1" "${2:-true};${3:-true}";;
+    esac
+}
+# --------------------------------------------------------------------
+ssh_h_cert_install_calc_variables
+if test @"${0##*/}" = @"ssh-h-cert-install"; then
+    export MSYS_NO_PATHCONV=1
+    case "${1}" in
+        ''|-h|--help) sed -n 's/^ *#h: \{0,1\}//p' "$0";;
+        -V)           ssh_h_cert_install_show_variables;;
+        *)            ssh_h_cert_install "$@";;
+    esac
+    exit 0
+fi
