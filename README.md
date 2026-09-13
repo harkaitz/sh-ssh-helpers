@@ -125,12 +125,6 @@ ssh-h-speed
     
     Environment variables: SSH, SSH_H_LIST
 
-ssh-h-timesync
-
-    Usage: ssh-h-timesync SSH,...
-    
-    Synchronize time in remote machines.
-
 ssh-h-uname
 
     Usage: ssh-h-uname OPTS... SSH,...

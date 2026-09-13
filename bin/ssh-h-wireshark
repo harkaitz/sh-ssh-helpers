@@ -41,7 +41,7 @@ ssh_h_wireshark() {
     
     ## Calculate program to execute.
     cmd="
-        intf='$2'
+        intf='$2' sudo='$sudo'
         "'
         set -e
         if ! which tcpdump >/dev/null 2>&1; then
@@ -51,16 +51,22 @@ ssh_h_wireshark() {
         ip="$(echo "$SSH_CONNECTION" | cut -d " " -f 1)"
         port="$(echo "$SSH_CONNECTION" | cut -d " " -f 2)"
         case "$(uname -s)" in
-            OpenBSD) filter="not (src $ip and port $port)" ;;
-            *)       filter="not (src host $ip and src port $port)";;
+            OpenBSD) args=""   filter="not ((src $ip and port $port) or (port 22))" ;;
+            *)       args="-U" filter="not ((src host $ip and src port $port) or (port 22))";;
         esac
-        echo >&2 "${sudo} tcpdump -i $intf -w - \"${filter}\""
-        ${sudo} tcpdump -i "$intf" -w - "${filter}"
+        echo >&2 "${sudo} tcpdump $args -i $intf -w - \"${filter}\""
+        exec ${sudo} tcpdump $args -i "$intf" -w - "${filter}"
     '
 
     ## Execute wireshark.
-    ssh "$1" "${cmd}" | "${WIRESHARK}" -k -i - ${opt_f:+ -f "${opt_f}" }
-    
+    if which ipipe >/dev/null 2>&1; then
+        ipipe \
+            ssh "$1" "${cmd}" \
+            @@ \
+            "${WIRESHARK}" -k -i - ${opt_f:+ -f "${opt_f}" }
+    else
+        ssh "$1" "${cmd}" | "${WIRESHARK}" -k -i - ${opt_f:+ -f "${opt_f}" }
+    fi
 }
 ssh_h_wireshark_show_variables() {
     echo "WIRESHARK : ${WIRESHARK}"
